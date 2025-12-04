@@ -21,7 +21,10 @@ import numpy as np
 import time
 import argparse
 import threading
+import pickle
 import matplotlib
+import json
+import copy
 
 # Try to use TkAgg backend for live display, fallback to Agg if not available
 try:
@@ -313,144 +316,92 @@ def main():
         print(f"   Grasps generated: {total_grasps} (best score: {best_score:.3f})")
     else:
         print("   Grasps: None generated")
+        
+    # Save results to pickle file
+    pickle_path = "manipulation_results.pkl"
+    print(f"\nSaving results to pickle file: {pickle_path}")
+    
+    def serialize_point_cloud(pcd):
+        """Convert Open3D PointCloud to serializable format."""
+        if pcd is None:
+            return None
+        data = {
+            'points': np.asarray(pcd.points).tolist() if hasattr(pcd, 'points') else [],
+            'colors': np.asarray(pcd.colors).tolist() if hasattr(pcd, 'colors') and pcd.colors else []
+        }
+        return data
+    
+    def serialize_voxel_grid(voxel_grid):
+        """Convert Open3D VoxelGrid to serializable format."""
+        if voxel_grid is None:
+            return None
+        
+        # Extract voxel data
+        voxels = voxel_grid.get_voxels()
+        data = {
+            'voxel_size': voxel_grid.voxel_size,
+            'origin': np.asarray(voxel_grid.origin).tolist(),
+            'voxels': [(v.grid_index[0], v.grid_index[1], v.grid_index[2], 
+                       v.color[0], v.color[1], v.color[2]) for v in voxels]
+        }
+        return data
+    
+    # Create a copy of results with non-picklable objects converted
+    pickle_data = {
+        "color_img": color_img,
+        "depth_img": depth_img,
+        "intrinsics": intrinsics,
+        "results": {}
+    }
+    
+    # Convert and store all results, properly handling Open3D objects
+    for key, value in results.items():
+        if key.endswith('_viz') or key in ['processing_time', 'timing_breakdown', 'detection2d_objects', 'segmentation2d_objects']:
+            # These are already serializable
+            pickle_data["results"][key] = value
+        elif key == 'full_pointcloud':
+            # Serialize PointCloud object
+            pickle_data["results"][key] = serialize_point_cloud(value)
+            print(f"Serialized {key}")
+        elif key == 'misc_voxel_grid':
+            # Serialize VoxelGrid object
+            pickle_data["results"][key] = serialize_voxel_grid(value)
+            print(f"Serialized {key}")
+        elif key == 'misc_clusters':
+            # List of PointCloud objects
+            if value:
+                serialized_clusters = [serialize_point_cloud(cluster) for cluster in value]
+                pickle_data["results"][key] = serialized_clusters
+                print(f"Serialized {key} ({len(serialized_clusters)} clusters)")
+        elif key == 'detected_objects' or key == 'all_objects':
+            # Objects with PointCloud attributes
+            serialized_objects = []
+            for obj in value:
+                obj_dict = {k: v for k, v in obj.items() if k != 'point_cloud'}
+                if 'point_cloud' in obj:
+                    obj_dict['point_cloud'] = serialize_point_cloud(obj.get('point_cloud'))
+                serialized_objects.append(obj_dict)
+            pickle_data["results"][key] = serialized_objects
+            print(f"Serialized {key} ({len(serialized_objects)} objects)")
+        else:
+            try:
+                # Try to pickle as is
+                pickle_data["results"][key] = value
+                print(f"Preserved {key} as is")
+            except (TypeError, ValueError):
+                print(f"Warning: Could not serialize {key}, skipping")
+    
+    with open(pickle_path, "wb") as f:
+        pickle.dump(pickle_data, f)
+    
+    print(f"Results saved successfully with all 3D data serialized!")
+    print(f"Pickled data keys: {list(pickle_data['results'].keys())}")
+    
 
-    # Determine number of subplots based on what results we have
-    num_plots = 0
-    plot_configs = []
-
-    if "detection_viz" in results and results["detection_viz"] is not None:
-        plot_configs.append(("detection_viz", "Object Detection"))
-        num_plots += 1
-
-    if "segmentation_viz" in results and results["segmentation_viz"] is not None:
-        plot_configs.append(("segmentation_viz", "Semantic Segmentation"))
-        num_plots += 1
-
-    if "pointcloud_viz" in results and results["pointcloud_viz"] is not None:
-        plot_configs.append(("pointcloud_viz", "All Objects Point Cloud"))
-        num_plots += 1
-
-    if "detected_pointcloud_viz" in results and results["detected_pointcloud_viz"] is not None:
-        plot_configs.append(("detected_pointcloud_viz", "Detection Objects Point Cloud"))
-        num_plots += 1
-
-    if "misc_pointcloud_viz" in results and results["misc_pointcloud_viz"] is not None:
-        plot_configs.append(("misc_pointcloud_viz", "Misc/Background Points"))
-        num_plots += 1
-
-    if "grasp_overlay" in results and results["grasp_overlay"] is not None:
-        plot_configs.append(("grasp_overlay", "Grasp Overlay"))
-        num_plots += 1
-
-    if num_plots == 0:
-        print("No visualization results to display")
-        return
-
-    # Create subplot layout
-    if num_plots <= 3:
-        fig, axes = plt.subplots(1, num_plots, figsize=(6 * num_plots, 5))
-    else:
-        rows = 2
-        cols = (num_plots + 1) // 2
-        fig, axes = plt.subplots(rows, cols, figsize=(6 * cols, 5 * rows))
-
-    # Ensure axes is always a list for consistent indexing
-    if num_plots == 1:
-        axes = [axes]
-    elif num_plots > 2:
-        axes = axes.flatten()
-
-    # Plot each result
-    for i, (key, title) in enumerate(plot_configs):
-        axes[i].imshow(results[key])
-        axes[i].set_title(title)
-        axes[i].axis("off")
-
-    # Hide unused subplots if any
-    if num_plots > 3:
-        for i in range(num_plots, len(axes)):
-            axes[i].axis("off")
-
-    plt.tight_layout()
-
-    # Save and show the plot
-    output_path = "manipulation_results_lcm.png"
-    plt.savefig(output_path, dpi=150, bbox_inches="tight")
-    print(f"Results visualization saved to: {output_path}")
-
-    # Show plot live as well
-    plt.show(block=True)
-    plt.close()
-
-    # 3D visualization with grasps (if enabled)
-    if "grasps" in results and results["grasps"]:
-        pcd = create_point_cloud(color_img, depth_img, intrinsics)
-        all_grasps = results["grasps"]
-
-        if all_grasps:
-            logger.info(f"Visualizing {len(all_grasps)} grasps in 3D")
-            visualize_grasps_3d(pcd, all_grasps)
-    else:
-        logger.info("Grasp generation disabled - skipping 3D grasp visualization")
-
-    # Visualize full point cloud if available
-    if "full_pointcloud" in results and results["full_pointcloud"] is not None:
-        full_pcd = results["full_pointcloud"]
-        print(f"Visualizing full point cloud with {len(np.asarray(full_pcd.points))} points")
-
-        try:
-            visualize_pcd(
-                full_pcd,
-                window_name="Full Scene Point Cloud",
-                point_size=2.0,
-                show_coordinate_frame=True,
-            )
-        except (KeyboardInterrupt, EOFError):
-            print("\nSkipping full point cloud visualization")
-    else:
-        print("No full point cloud available for visualization")
-
-    # Visualize misc/background clusters if available
-    if "misc_clusters" in results and results["misc_clusters"]:
-        misc_clusters = results["misc_clusters"]
-        cluster_count = len(misc_clusters)
-        total_misc_points = sum(len(np.asarray(cluster.points)) for cluster in misc_clusters)
-        print(
-            f"Visualizing {cluster_count} misc/background clusters with {total_misc_points} total points"
-        )
-
-        try:
-            visualize_clustered_point_clouds(
-                misc_clusters,
-                window_name="Misc/Background Clusters (DBSCAN)",
-                point_size=3.0,
-                show_coordinate_frame=True,
-            )
-        except (KeyboardInterrupt, EOFError):
-            print("\nSkipping misc clusters visualization")
-    else:
-        print("No misc clusters available for visualization")
-
-    # Visualize voxel grid separately
-    if "misc_voxel_grid" in results and results["misc_voxel_grid"] is not None:
-        misc_voxel_grid = results["misc_voxel_grid"]
-        misc_clusters = results.get("misc_clusters", [])
-
-        voxel_count = len(misc_voxel_grid.get_voxels())
-        print(f"Visualizing voxel grid with {voxel_count} voxels")
-
-        try:
-            visualize_voxel_grid(
-                misc_voxel_grid,
-                window_name="Misc/Background Voxel Grid",
-                show_coordinate_frame=True,
-            )
-        except (KeyboardInterrupt, EOFError):
-            print("\nSkipping voxel grid visualization")
-        except Exception as e:
-            print(f"Error in voxel grid visualization: {e}")
-    else:
-        print("No voxel grid available for visualization")
+    # Visualization code has been moved to visualization_script.py
+    # The results have been pickled and can be loaded from there
+    print("\nVisualization code has been moved to visualization_script.py")
+    print("Run 'python visualization_script.py' to visualize the results")
 
 
 if __name__ == "__main__":
