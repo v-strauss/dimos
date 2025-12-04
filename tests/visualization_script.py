@@ -456,27 +456,31 @@ class DrakeKinematicsEnv:
             pcd.points = o3d.utility.Vector3dVector(obj["point_cloud_numpy"])
             full_detected_pcd += pcd
         
-        visualize_pcd(
-            full_detected_pcd,
-            "Detected Objects",
-            2, 
-            True
-            )
+        self.process_and_add_object_class("detected_objects", results)
+        self.process_and_add_object_class("misc_clusters", results)
+        misc_clusters = results["misc_clusters"]
+        print(type(misc_clusters[0]["points"]))
+        print(np.asarray(misc_clusters[0]["points"]).shape)
 
+
+    def process_and_add_object_class(self, object_key: str, results: dict):
         # Process detected objects
-        if "detected_objects" in results:
-            detected_objects = results["detected_objects"]
+        if object_key in results:
+            detected_objects = results[object_key]
             if detected_objects:
-                print(f"Processing {len(detected_objects)} detected objects")
+                print(f"Processing {len(detected_objects)} {object_key}")
                 all_decomposed_meshes = []
                 
-                for i, obj in enumerate(detected_objects):
+                transform = self.get_transform("world", "camera_center_link")
+                for i in range(len(detected_objects)):
                     try:
-                        if "point_cloud_numpy" in obj:
-                            points = obj["point_cloud_numpy"]
-                        elif "point_cloud" in obj and obj["point_cloud"]:
+                        if object_key == "misc_clusters":
+                            points = np.asarray(detected_objects[i]["points"])
+                        elif "point_cloud_numpy" in detected_objects[i]:
+                            points = detected_objects[i]["point_cloud_numpy"]
+                        elif "point_cloud" in detected_objects[i] and detected_objects[i]["point_cloud"]:
                             # Handle serialized point cloud
-                            points = np.array(obj["point_cloud"]["points"])
+                            points = np.array(detected_objects[i]["point_cloud"]["points"])
                         else:
                             print(f"Warning: No point cloud data found for object {i}")
                             continue
@@ -488,7 +492,6 @@ class DrakeKinematicsEnv:
                         # Swap y-z axes since this is a common problem
                         points = np.column_stack((points[:, 0], points[:, 2], -points[:, 1]))
                         # Transform points to world frame
-                        transform = self.get_transform("world", "camera_center_link")
                         points = self.transform_point_cloud_with_open3d(points, transform)
                             
                         # Use fast DBSCAN clustering + convex hulls approach
@@ -501,7 +504,11 @@ class DrakeKinematicsEnv:
                         print(f"Warning: Failed to process object {i}: {e}")
                 
                 if all_decomposed_meshes:
-                    self.register_convex_hulls_as_collision(all_decomposed_meshes)
+                    if object_key == "misc_clusters":
+                        hull_type = "misc"
+                    else:
+                        hull_type = "detected"
+                    self.register_convex_hulls_as_collision(all_decomposed_meshes, hull_type)
                     print(f"Registered {len(all_decomposed_meshes)} total clustered convex hulls")
                 else:
                     print("Warning: No valid clustered convex hulls created from detected objects")
@@ -545,22 +552,12 @@ class DrakeKinematicsEnv:
                 avg_nn_distance = np.mean(distances)
                 std_nn_distance = np.std(distances)
                 
-                # Try multiple parameter combinations
-                parameter_sets = [
-                    # (eps, min_samples) - progressively more aggressive
-                    (avg_nn_distance * 2.0, max(3, len(points) // 50)),      # Conservative
-                    (avg_nn_distance * 3.0, max(3, len(points) // 100)),     # Moderate
-                    (avg_nn_distance * 4.0, max(3, len(points) // 200)),     # Aggressive
-                    (avg_nn_distance * 6.0, 3),                              # Very aggressive
-                    (0.05, 3),                                               # Fixed small scale
-                    (0.1, 3),                                                # Fixed medium scale
-                    (0.02, 3),                                               # Fixed tiny scale
-                ]
-                
                 print(f"Object {object_id}: {len(points)} points, avg_nn_dist={avg_nn_distance:.4f}")
                 
-                for i, (eps, min_samples) in enumerate(parameter_sets):
+                for i in range(20):
                     try:
+                        eps = avg_nn_distance * (2.0 + (i*0.1))
+                        min_samples = 20
                         labels = np.array(pcd.cluster_dbscan(eps=eps, min_points=min_samples))
                         unique_labels = np.unique(labels)
                         clusters = unique_labels[unique_labels >= 0]  # Remove noise label (-1)
@@ -571,7 +568,7 @@ class DrakeKinematicsEnv:
                         print(f"  Try {i+1}: eps={eps:.4f}, min_samples={min_samples} → {len(clusters)} clusters, {clustered_points}/{len(points)} points clustered")
                         
                         # Accept if we found clusters and most points are clustered
-                        if len(clusters) > 0 and clustered_points >= len(points) * 0.3:  # At least 30% of points clustered
+                        if len(clusters) > 0 and clustered_points >= len(points) * 0.95:  # At least 30% of points clustered
                             print(f"  ✓ Accepted parameter set {i+1}")
                             break
                             
@@ -587,6 +584,7 @@ class DrakeKinematicsEnv:
                 return [hull_mesh]
             
             print(f"Found {len(clusters)} clusters for object {object_id} (eps={eps:.3f}, min_samples={min_samples})")
+
             
             # Create convex hull for each cluster
             convex_hulls = []
@@ -690,7 +688,7 @@ class DrakeKinematicsEnv:
         self._update_visualization()
         print(f"Updated joint positions: {joint_positions}")
 
-    def register_convex_hulls_as_collision(self, meshes: List[o3d.geometry.TriangleMesh]):
+    def register_convex_hulls_as_collision(self, meshes: List[o3d.geometry.TriangleMesh], hull_type: str):
         """Register convex hulls as collision and visual geometry"""
         if not meshes:
             print("No meshes to register")
@@ -731,14 +729,14 @@ class DrakeKinematicsEnv:
                     body=world,
                     X_BG=X_WG,
                     shape=drake_mesh,
-                    name=f"convex_hull_collision_{i}",
+                    name=f"convex_hull_collision_{i}_{hull_type}",
                     properties=proximity,
                 )
                 self.plant.RegisterVisualGeometry(
                     body=world,
                     X_BG=X_WG,
                     shape=drake_mesh,
-                    name=f"convex_hull_visual_{i}",
+                    name=f"convex_hull_visual_{i}_{hull_type}",
                     diffuse_color=np.array([0.7, 0.5, 0.3, 0.8]),  # Orange-ish color
                 )
 
@@ -906,6 +904,16 @@ class DrakeKinematicsEnv:
 
 # Updated main function
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Visualize manipulation results')
+    parser.add_argument('--visualize-only', action='store_true', help='Only visualize results')
+    args = parser.parse_args()
+    
+    if args.visualize_only:
+        visualize_results()
+        exit(0)
+
     try:
         # Then set up Drake environment
         kinematic_chain_joints = [
