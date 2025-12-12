@@ -37,40 +37,78 @@ class Metric3D:
         self.onnx_model_path = onnx_model_path
 
         print(f"############################################# Using model: {onnx_model_path} ###########################################################")
-        # Provider selection logic
+        # Provider selection logic. For now, I'm assuming we always resize. But we could offload this to TensorRT if we want.
+        MIN_SHAPE = "image:1x3x616x1064"
+        OPT_SHAPE = "image:1x3x616x1064"
+        MAX_SHAPE = "image:1x3x616x1064"
+
+        tensorrt_opts = {
+            "device_id": 0,
+
+            # Memory/tactics
+            "trt_max_workspace_size": 512 * 1024**2,        # 512MB
+            "trt_builder_optimization_level": 5,            # 0..5, higher = more aggressive build/tactics
+            "trt_auxiliary_streams": 2,                     # small benefit on some nets; keep modest on Nano
+
+            # Precision
+            "trt_fp16_enable": True,                        # Nano lacks tensor cores but can still benefit from FP16 in some ops
+            "trt_int8_enable": False,                       # set True only if you have a Q/DQ model or a proper calibration table
+
+            # Partitioning / conversion heuristics
+            "trt_max_partition_iterations": 1000,
+            "trt_min_subgraph_size": 1,
+            "trt_build_heuristics_enable": True,
+
+            # Keep LayerNorm stable if needed (accuracy safeguard, can be False for speed)
+            "trt_layer_norm_fp32_fallback": True,
+
+            # Context memory sharing to lower RAM requirements
+            "trt_context_memory_sharing_enable": True,
+            # CUDA graph inside TRT to lower launch overhead
+            "trt_cuda_graph_enable": True,
+
+            # Engine cache (skip rebuilds) + timing cache (faster rebuilds)
+            "trt_engine_cache_enable": True,
+            "trt_engine_cache_path": "./trt_engines",
+            "trt_timing_cache_enable": True,
+            "trt_timing_cache_path": "./trt_timing",
+            # If you ship timing cache across devices of same CC, you can try:
+            # "trt_force_timing_cache": True,
+
+            # Dynamic shape profiles
+            "trt_profile_min_shapes": MIN_SHAPE,
+            "trt_profile_opt_shapes": OPT_SHAPE,
+            "trt_profile_max_shapes": MAX_SHAPE,
+
+            # Plugins or exclusions (optional)
+            # "trt_extra_plugin_lib_paths": "/path/to/libmytrtplugin.so",
+            # "trt_op_types_to_exclude": "NonMaxSuppression"  # example
+        }
+
+        cuda_opts = {
+            'cudnn_conv_use_max_workspace': '0',
+            'device_id': 0,
+            'arena_extend_strategy': 'kNextPowerOfTwo',
+            'cudnn_conv_algo_search': 'EXHAUSTIVE',
+            'do_copy_in_default_stream': True,
+        }
+
         if provider == 'auto':
             # Try CUDA, then TensorRT, then CPU
             available_providers = ort.get_available_providers()
-            if 'CUDAExecutionProvider' in available_providers:
+            if 'TensorrtExecutionProvider' in available_providers:
                 providers = [
-                    (
-                        'CUDAExecutionProvider',
-                        {'cudnn_conv_use_max_workspace': '0', 'device_id': '0'}
-                    )
+                    ('TensorrtExecutionProvider', tensorrt_opts),
+                    ('CUDAExecutionProvider', cuda_opts)
                 ]
-            elif 'TensorrtExecutionProvider' in available_providers:
-                providers = [
-                    (
-                        'TensorrtExecutionProvider',
-                        {'trt_engine_cache_enable': True, 'trt_fp16_enable': True, 'device_id': 0, 'trt_dla_enable': False}
-                    )
-                ]
+            elif 'CUDAExecutionProvider' in available_providers:
+                providers = [('CUDAExecutionProvider', cuda_opts)]
             else:
                 providers = ['CPUExecutionProvider']
         elif provider == 'cuda':
-            providers = [
-                (
-                    'CUDAExecutionProvider',
-                    {'cudnn_conv_use_max_workspace': '0', 'device_id': '0'}
-                )
-            ]
+            providers = [('CUDAExecutionProvider', cuda_opts)]
         elif provider == 'tensorrt':
-            providers = [
-                (
-                    'TensorrtExecutionProvider',
-                    {'trt_engine_cache_enable': True, 'trt_fp16_enable': True, 'device_id': 0, 'trt_dla_enable': False}
-                )
-            ]
+            providers = [('TensorrtExecutionProvider', tensorrt_opts)]
         else:
             providers = ['CPUExecutionProvider']
         
