@@ -23,6 +23,9 @@ import numpy as np
 from multiprocessing.shared_memory import SharedMemory
 from multiprocessing.managers import SharedMemoryManager
 
+def _sanitize_shm_name(name: str) -> str:
+    #  Python's SharedMemory expects names like 'psm_abc', without leading '/'
+    return name.lstrip("/") if isinstance(name, str) else name
 
 def _ensure_cuda_context(cp, dev: int) -> None:
     """Create/init runtime+primary context on this thread for device `dev`."""
@@ -197,8 +200,8 @@ class CpuShmChannel(FrameChannel):
             "shape": self._shape,
             "dtype": self._dtype.str,
             "nbytes": self._nbytes,
-            "data_name": self._shm_data.name,
-            "ctrl_name": self._shm_ctrl.name,
+            "data_name": _sanitize_shm_name(self._shm_data.name),
+            "ctrl_name": _sanitize_shm_name(self._shm_ctrl.name),
         }
 
     @classmethod
@@ -207,8 +210,17 @@ class CpuShmChannel(FrameChannel):
         obj._shape = tuple(desc["shape"])
         obj._dtype = np.dtype(desc["dtype"])
         obj._nbytes = int(desc["nbytes"])
-        obj._shm_data = SharedMemory(name=desc["data_name"])
-        obj._shm_ctrl = SharedMemory(name=desc["ctrl_name"])
+        data_name = _sanitize_shm_name(desc["data_name"])
+        ctrl_name = _sanitize_shm_name(desc["ctrl_name"])
+        try:
+            obj._shm_data = SharedMemory(name=data_name)
+            obj._shm_ctrl = SharedMemory(name=ctrl_name)
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                    f"CPU IPC attach failed: control/data SHM not found "
+                    f"(ctrl='{ctrl_name}', data='{data_name}'). "
+                    f"Ensure the writer is running on the same host and the channel is alive."
+                ) from e
         obj._ctrl = np.ndarray((3,), dtype=np.int64, buffer=obj._shm_ctrl.buf)
         # attachments don’t own/unlink
         obj._finalizer_data = obj._finalizer_ctrl = None
@@ -317,7 +329,7 @@ class CudaIpcChannel(FrameChannel):
     def descriptor(self) -> dict:
         if not getattr(self, "_is_owner", False):
             d = dict(self._attached_desc or {})
-            d["ctrl_name"] = self._shm_ctrl.name
+            d["ctrl_name"] = _sanitize_shm_name(self._shm_ctrl.name)
             return d
         if getattr(self, "_handles", None) is None:
             _ensure_cuda_context(self._cp, self._device)
@@ -334,7 +346,7 @@ class CudaIpcChannel(FrameChannel):
             "pci": pci,
             "pid": os.getpid(),
             "nbytes": self._nbytes,
-            "ctrl_name": self._shm_ctrl.name,
+            "ctrl_name": _sanitize_shm_name(self._shm_ctrl.name),
             "ptr0": int(self._bufs[0].data.ptr),
             "ptr1": int(self._bufs[1].data.ptr),
             "handle0": self._handles[0],
@@ -353,7 +365,14 @@ class CudaIpcChannel(FrameChannel):
         obj._is_owner = False
 
         # control shm
-        obj._shm_ctrl = SharedMemory(name=desc["ctrl_name"])
+        ctrl_name = _sanitize_shm_name(desc["ctrl_name"])
+        try:
+            obj._shm_ctrl = SharedMemory(name=ctrl_name)
+        except FileNotFoundError as e:
+            raise FileNotFoundError(
+                    f"CUDA IPC attach failed: control SHM not found (ctrl='{ctrl_name}'). "
+                    f"Ensure reader is on the same host as the writer and the channel is alive."
+                ) from e
         obj._ctrl = np.ndarray((3,), dtype=np.int64, buffer=obj._shm_ctrl.buf)
         obj._finalizer_ctrl = None
 

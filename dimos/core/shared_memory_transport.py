@@ -32,7 +32,7 @@ from dimos.utils.ipc_factory import CPU_IPC_Factory  # CUDA imported lazily
 class SharedMemoryImageTransport(PubSubTransport):
     """Drop-in replacement for LCMTransport using unified IPC channels (CPU/CUDA), Dask-safe."""
 
-    def __init__(self, topic: str, shape: Tuple[int, ...], dtype, *, prefer: str = "auto"):
+    def __init__(self, topic: str, shape: Tuple[int, ...], dtype, *, prefer: str = "cuda"):
         """
         Args:
             topic: semantic only (not used for SHM naming)
@@ -176,7 +176,9 @@ class SharedMemoryImageTransport(PubSubTransport):
         Serialize a descriptor-only state; drop threads, locks, and module objects.
         """
         # Use cached descriptor to avoid regenerating CUDA IPC handles on reader side.
-        desc = getattr(self, "_desc", None) or self._channel.descriptor()
+        desc = getattr(self, "_desc", None)
+        if desc is None:
+            desc = self._channel.descriptor()
         return {
             "topic": getattr(self, "topic", None),
             "shape": self.shape,
