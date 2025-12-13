@@ -264,7 +264,7 @@ class UnitreeCameraModule(Module):
 
             self._publish_synchronized_data()
             frame_end = time.time()
-            logger.info(f"Frame COMPLETE latency={(frame_end - frame_start)*1000:.1f} ms")
+            logger.info(f"Frame COMPLETE latency={(frame_end - frame_start) * 1000:.1f} ms")
 
             # --- FPS counter over sliding window ---
             now = time.time()
