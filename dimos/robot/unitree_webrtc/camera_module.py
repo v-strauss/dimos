@@ -16,7 +16,7 @@
 
 import time
 import threading
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 import cv2
 import numpy as np
@@ -28,8 +28,9 @@ from dimos_lcm.sensor_msgs import CameraInfo
 from dimos.msgs.std_msgs import Header
 from dimos.protocol.tf import TF
 from dimos.utils.logging_config import setup_logger
-from dimos.utils.ipc_factory import make_frame_channel, CPU_IPC_Factory, CUDA_IPC_Factory
+from dimos.utils.ipc_factory import CPU_IPC_Factory, CUDA_IPC_Factory
 from dimos.utils.multirate import MultiRateProcessor
+from dimos.utils.dask_frame_cluster import SourceActor
 from dimos.perception.common.utils import colorize_depth
 
 logger = setup_logger(__name__)
@@ -86,27 +87,40 @@ class UnitreeCameraModule(Module):
         self.camera_frame_id = camera_frame_id
         self.base_frame_id = base_frame_id
         self.world_frame_id = world_frame_id
-
-        # Initialize components
-        from dimos.models.depth.metric3d import Metric3D
-
-        self.metric3d = Metric3D(camera_intrinsics=self.camera_intrinsics)
         self.gt_depth_scale = gt_depth_scale
+
+        # Initialize Metric3D
+        from dimos.models.depth.metric3d import Metric3D
+        self.metric3d = Metric3D(camera_intrinsics=self.camera_intrinsics)
         self.tf = TF()
 
         # Processing state
         self._running = False
         self._latest_frame = None
         self._last_image = None
-        self._last_timestamp = None
         self._last_depth = None
+
+        # IPC & processor members
+        self.backend = self._autodetect_backend()
+        self._source: Optional[SourceActor] = None     # owns the channel
+        self._desc: Optional[dict] = None              # descriptor from source.channel
+        self.slot = None                                # attached reader for MRP
+        self._multirateprocessor: Optional[MultiRateProcessor] = None
 
         # Threading
         self._processing_thread: Optional[threading.Thread] = None
         self._stop_processing = threading.Event()
-        self._multirateprocessor = MultiRateProcessor(target_fps_by_model={"depth": (15, self._process_depth)})
 
-        logger.info(f"UnitreeCameraModule initialized with intrinsics: {camera_intrinsics}")
+        logger.info(
+            f"UnitreeCameraModule initialized | intrinsics={camera_intrinsics} | backend={self.backend}"
+        )
+
+    def _autodetect_backend(self) -> str:
+        try:
+            import cupy as cp  # noqa
+            return "cuda" if cp.is_available() else "cpu"
+        except Exception:
+            return "cpu"
 
     @rpc
     def start(self):
@@ -115,15 +129,9 @@ class UnitreeCameraModule(Module):
             logger.warning("Camera module already running")
             return
 
-        # Set running flag before starting
         self._running = True
-
-        # Subscribe to video input
         self.video.subscribe(self._on_video)
-
-        # Start processing thread
         self._start_processing_thread()
-
         logger.info("Camera module started")
 
     @rpc
@@ -135,94 +143,126 @@ class UnitreeCameraModule(Module):
         self._running = False
         self._stop_processing.set()
 
-        # Wait for thread to finish
+        # Stop thread
         if self._processing_thread and self._processing_thread.is_alive():
             self._processing_thread.join(timeout=2.0)
 
+        # Stop processor
+        try:
+            if self._multirateprocessor:
+                self._multirateprocessor.stop()
+        except Exception:
+            pass
+
+        # Close attached slot
+        try:
+            if self.slot:
+                self.slot.close()
+        except Exception:
+            pass
+
+        # Close source (owner channel)
+        try:
+            if self._source:
+                self._source.close()
+        except Exception:
+            pass
+
         logger.info("Camera module stopped")
 
+    @rpc
+    def get_channel_desc(self) -> dict:
+        """Expose the frame channel descriptor so external actors can attach."""
+        return self._desc if self._desc is not None else {}
+
     def _on_video(self, msg: Image):
-        """Store latest video frame for processing."""
+        """Store latest video frame and feed into IPC via SourceActor."""
         if not self._running:
             return
 
-        # Simply store the latest frame - processing happens in main loop
-        self._latest_frame = msg
-        logger.debug(
-            f"Received video frame: format={msg.format}, shape={msg.data.shape if hasattr(msg.data, 'shape') else 'unknown'}"
-        )
+        try:
+            if self._source is None:
+                # First frame → initialize SourceActor (owner of channel)
+                shape = tuple(msg.data.shape)            # (H, W, C) expected
+                prefer = "cuda" if self.backend == "cuda" else "cpu"
+                dtype = msg.data.dtype
+
+                # 1) Create SourceActor that OWNS the channel
+                self._source = SourceActor(shape=shape, dtype=dtype, prefer=prefer, device_id=0)
+
+                # 2) Get descriptor for attachments
+                self._desc = self._source.descriptor()
+
+                # 3) Attach a reader slot for MultiRateProcessor
+                if prefer == "cuda":
+                    self.slot = CUDA_IPC_Factory.attach(self._desc)
+                else:
+                    self.slot = CPU_IPC_Factory.attach(self._desc)
+
+                # 4) Build processor on the attached reader slot
+                self._multirateprocessor = MultiRateProcessor(
+                    channel=self.slot,
+                    target_fps_by_model={"depth": 15},
+                    handlers={"depth": self._process_depth},
+                    max_age_s=0.25,
+                )
+                self._multirateprocessor.start()
+
+                logger.info(f"Initialized SourceActor + IPC channel shape={shape} prefer={prefer} dtype={dtype}")
+
+            # Push this frame into the channel via SourceActor
+            self._source.publish(msg.data)
+
+            # Keep last image for publishing (color topic)
+            self._last_image = msg.data
+
+        except Exception as e:
+            logger.error(f"Error in _on_video: {e}", exc_info=True)
 
     def _start_processing_thread(self):
-        """Start the processing thread."""
+        """Start an idle processing thread (keeps module lifecycle/simple shutdown)."""
         self._stop_processing.clear()
-        self._processing_thread = threading.Thread(target=self._main_processing_loop, daemon=True)
+        self._processing_thread = threading.Thread(
+            target=self._main_processing_loop, daemon=True
+        )
         self._processing_thread.start()
         logger.info("Started camera processing thread")
 
     def _main_processing_loop(self):
-        """Main processing loop that continuously processes latest frames."""
-        logger.info("Starting main processing loop")
-
+        """Idle loop; MultiRateProcessor pulls frames from IPC and calls our handler."""
+        logger.info("Main processing loop running")
         while not self._stop_processing.is_set():
-            # Process latest frame if available
-            if self._latest_frame is not None:
-                try:
-                    print("Hitting multirate processor")
-                    msg = self._latest_frame
-                    self._latest_frame = None  # Clear to avoid reprocessing
-                    self._multirateprocessor.on_frame(msg)
-                    # Store for publishing
-                    #self._last_image = msg.data
-                    #self._last_timestamp = msg.ts if msg.ts else time.time()
-                    # Process depth
-                    #self._process_depth(self._last_image)
-
-                except Exception as e:
-                    logger.error(f"Error in main processing loop: {e}", exc_info=True)
-            else:
-                # Small sleep to avoid busy waiting
-                time.sleep(0.001)
-
+            time.sleep(0.001)
         logger.info("Main processing loop stopped")
 
-    def _process_depth(self, img_array: np.ndarray):
-        """Process depth estimation using Metric3D."""
+    def _process_depth(self, img_array: np.ndarray, meta=None):
+        """Process depth estimation using Metric3D (CPU/GPU handled inside the model)."""
         try:
-            logger.debug(f"Processing depth for image shape: {img_array.shape}")
-
-            # Generate depth map
             depth_array = self.metric3d.infer_depth(img_array) / self.gt_depth_scale
-
             self._last_depth = depth_array
-            logger.debug(f"Generated depth map shape: {depth_array.shape}")
-
             self._publish_synchronized_data()
-
         except Exception as e:
             logger.error(f"Error processing depth: {e}", exc_info=True)
 
     def _publish_synchronized_data(self):
-        """Publish all data synchronously."""
+        """Publish color, depth, colorized depth, camera info, and pose."""
         if not self._running:
             return
 
         try:
-            # Create header
             header = Header(self.camera_frame_id)
 
-            logger.debug("Publishing synchronized camera data")
+            # Publish color image (if available)
+            if self._last_image is not None:
+                color_msg = Image(
+                    data=self._last_image,
+                    format=ImageFormat.RGB,
+                    frame_id=header.frame_id,
+                    ts=header.ts,
+                )
+                self.color_image.publish(color_msg)
 
-            # Publish color image
-            color_msg = Image(
-                data=self._last_image,
-                format=ImageFormat.RGB,
-                frame_id=header.frame_id,
-                ts=header.ts,
-            )
-            self.color_image.publish(color_msg)
-            logger.debug(f"Published color image: shape={self._last_image.shape}")
-
-            # Publish depth image
+            # Publish depth + colorized
             if self._last_depth is not None:
                 depth_msg = Image(
                     data=self._last_depth,
@@ -231,9 +271,7 @@ class UnitreeCameraModule(Module):
                     ts=header.ts,
                 )
                 self.depth_image.publish(depth_msg)
-                logger.debug(f"Published depth image: shape={self._last_depth.shape}")
 
-                # Publish colorized depth image
                 depth_colorized_array = colorize_depth(
                     self._last_depth, max_depth=10.0, overlay_stats=True
                 )
@@ -245,14 +283,9 @@ class UnitreeCameraModule(Module):
                         ts=header.ts,
                     )
                     self.depth_colorized.publish(depth_colorized_msg)
-                    logger.debug(
-                        f"Published colorized depth image: shape={depth_colorized_array.shape}"
-                    )
 
-            # Publish camera info
+            # Camera info & pose
             self._publish_camera_info(header)
-
-            # Publish camera pose
             self._publish_camera_pose(header)
 
         except Exception as e:
@@ -261,22 +294,14 @@ class UnitreeCameraModule(Module):
     def _publish_camera_info(self, header: Header):
         """Publish camera calibration information."""
         try:
-            # Extract intrinsics
             fx, fy, cx, cy = self.camera_intrinsics
-
-            # Get image dimensions from last image
+            if self._last_image is None:
+                return
             height, width = self._last_image.shape[:2]
 
-            # Camera matrix K (3x3)
             K = [fx, 0, cx, 0, fy, cy, 0, 0, 1]
-
-            # No distortion coefficients for now
-            D = [0.0, 0.0, 0.0, 0.0, 0.0]
-
-            # Identity rotation matrix
+            D = [0.0] * 5
             R = [1, 0, 0, 0, 1, 0, 0, 0, 1]
-
-            # Projection matrix P (3x4)
             P = [fx, 0, cx, 0, 0, fy, cy, 0, 0, 0, 1, 0]
 
             msg = CameraInfo(
@@ -292,25 +317,20 @@ class UnitreeCameraModule(Module):
                 binning_x=0,
                 binning_y=0,
             )
-
             self.camera_info.publish(msg)
-
         except Exception as e:
-            logger.error(f"Error publishing camera info: {e}")
+            logger.error(f"Error publishing camera info: {e}", exc_info=True)
 
     def _publish_camera_pose(self, header: Header):
         """Publish camera pose from TF lookup."""
         try:
-            # Look up transform from base_link to camera_link
             transform = self.tf.get(
                 parent_frame=self.world_frame_id,
                 child_frame=self.camera_frame_id,
                 time_point=header.ts,
                 time_tolerance=1.0,
             )
-
             if transform:
-                # Create PoseStamped from transform
                 pose_msg = PoseStamped(
                     ts=header.ts,
                     frame_id=self.camera_frame_id,
@@ -318,13 +338,8 @@ class UnitreeCameraModule(Module):
                     orientation=transform.rotation,
                 )
                 self.camera_pose.publish(pose_msg)
-            else:
-                logger.warning(
-                    f"Could not find transform from {self.base_frame_id} to {self.camera_frame_id}"
-                )
-
         except Exception as e:
-            logger.error(f"Error publishing camera pose: {e}")
+            logger.error(f"Error publishing camera pose: {e}", exc_info=True)
 
     @rpc
     def get_camera_intrinsics(self) -> List[float]:
@@ -334,4 +349,6 @@ class UnitreeCameraModule(Module):
     def cleanup(self):
         """Clean up resources on module destruction."""
         self.stop()
+        # Metric3D teardown
         self.metric3d.cleanup()
+

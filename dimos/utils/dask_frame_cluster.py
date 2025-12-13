@@ -1,8 +1,8 @@
 import argparse, time, numpy as np
 from dask.distributed import Client, LocalCluster
 
-from ipc_factory import make_frame_channel, CPU_IPC_Factory, CUDA_IPC_Factory
-from multirate import MultiRateProcessor
+from dimos.utils.ipc_factory import make_frame_channel, CPU_IPC_Factory, CUDA_IPC_Factory
+from dimos.utils.multirate import MultiRateProcessor
 
 from dimos.models.depth.metric3d import Metric3D
 
