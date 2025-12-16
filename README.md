@@ -93,6 +93,7 @@ Requires NVIDIA driver ≥ 575 (compatible with CUDA 12.9). CuPy currently only 
 pip install .[cpu,dev]
 
 # CUDA install
+python3.11 cuda_inject_deps.py
 pip install .[cuda,dev]
 
 # Copy and configure environment variables
