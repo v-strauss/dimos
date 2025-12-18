@@ -171,6 +171,8 @@ class UnitreeG1(Robot):
 
         self._setup_directories()
 
+        self._deploy_ros_bridge()
+
     def _setup_directories(self):
         """Setup output directories."""
         os.makedirs(self.output_dir, exist_ok=True)
@@ -191,8 +193,8 @@ class UnitreeG1(Robot):
         if self.enable_joystick:
             self._deploy_joystick()
 
-        if self.enable_ros_bridge:
-            self._deploy_ros_bridge()
+        # if self.enable_ros_bridge:
+        #     self._deploy_ros_bridge()
 
         self._start_modules()
 
