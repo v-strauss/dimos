@@ -232,10 +232,25 @@ def network_output(
                     logger.info("NetworkOutputOperator: on_completed received from source")
                     self._sink.on_completed()
 
-                    # Don't wait for sink - it will send packets at real-time pace (sync=True)
-                    # and clean up asynchronously via EOS handler
+                    # Wait for the network sink to finish streaming
+                    # With sync=True, packets are sent at real-time rate
+                    # The sink will set _is_playing=False when EOS completes
+                    import time
+
+                    max_wait = 60.0  # Max 1 minute
+                    start = time.time()
                     logger.info(
-                        "NetworkOutputOperator: EOS sent, packets will stream at real-time pace"
+                        f"NetworkOutputOperator: Waiting for network sink to finish (is_playing={self._sink._is_playing})"
+                    )
+                    while self._sink._is_playing:
+                        if time.time() - start > max_wait:
+                            logger.warning("NetworkOutputOperator: Timeout waiting for sink")
+                            break
+                        time.sleep(0.05)
+
+                    elapsed = time.time() - start
+                    logger.info(
+                        f"NetworkOutputOperator: Network sink finished after {elapsed:.2f}s"
                     )
                     observer.on_completed()
 

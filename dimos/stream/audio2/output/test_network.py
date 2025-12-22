@@ -42,9 +42,8 @@ def test_network_output_to_server():
         output=AudioSpec(format=AudioFormat.PCM_F32LE),
     ).pipe(network_output(host="127.0.0.1", port=5002, codec="opus", queue_size=25)).run()
 
-    # With sync=True, packets are sent at real-time rate (not a burst)
-    # Wait for the audio duration + cleanup time
-    time.sleep(duration + 1.0)
+    # .run() blocks until streaming completes (sync=True paces packets at real-time)
+    # No manual sleep needed
 
 
 def test_network_output_to_server_file():
@@ -54,12 +53,10 @@ def test_network_output_to_server_file():
     # 1. Start the server: ./gstreamer_scripts/gstreamer.sh
     # 2. Run this test with: pytest test_network.py::test_network_output_to_server_file
 
-    # perfection.wav is ~3 seconds long
     file_input(
         file_path=str(get_data("audio_bender") / "perfection.wav"),
         realtime=False,  # Fast playback for testing
     ).pipe(network_output(host="10.0.0.191", port=5002, codec="opus")).run()
 
-    # With sync=True, packets are sent at real-time rate based on timestamps
-    # Wait for the audio duration + cleanup time
-    time.sleep(4.0)
+    # .run() blocks until streaming completes (sync=True paces packets at real-time)
+    # No manual sleep needed
