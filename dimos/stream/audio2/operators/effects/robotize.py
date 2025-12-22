@@ -23,10 +23,10 @@ from .ring_modulator import ring_modulator
 
 
 def robotize(
-    pitch: float = 1.2,
-    carrier_freq: float = 60.0,
+    pitch: float = 1,
+    carrier_freq: float = 80.0,
     carrier_waveform: str = "sine",
-    ring_mix: float = 0.5,
+    ring_mix: float = 0.7,
 ):
     """Create a robotic voice effect by combining pitch shift and ring modulation.
 
