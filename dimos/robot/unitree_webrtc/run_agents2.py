@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 
 from dimos.agents2 import Agent
 from dimos.agents2.cli.human import HumanInput
+from dimos.agents2.cli.web import WebInput
 from dimos.agents2.constants import AGENT_SYSTEM_PROMPT_PATH
 from dimos.core.resource import Resource
 from dimos.robot.robot import UnitreeRobot
@@ -43,12 +44,14 @@ class UnitreeAgents2Runner(Resource):
     _agent: Optional[Agent]
     _robot_debugger: Optional[RobotDebugger]
     _navigation_skill: Optional[NavigationSkillContainer]
+    _web_input: Optional[WebInput]
 
     def __init__(self):
         self._robot: UnitreeRobot = None
         self._agent = None
         self._robot_debugger = None
         self._navigation_skill = None
+        self._web_input = None
 
     def start(self) -> None:
         self._robot = UnitreeGo2(
@@ -68,6 +71,8 @@ class UnitreeAgents2Runner(Resource):
         self._robot_debugger.start()
 
     def stop(self) -> None:
+        if self._web_input:
+            self._web_input.stop()
         if self._navigation_skill:
             self._navigation_skill.stop()
         if self._robot_debugger:
@@ -90,10 +95,15 @@ class UnitreeAgents2Runner(Resource):
         )
         self._navigation_skill.start()
 
+        # Create web input module
+        self._web_input = WebInput()
+        self._web_input.start()
+
         skill_containers = [
             UnitreeSkillContainer(robot=self._robot),
             self._navigation_skill,
-            HumanInput(),
+            HumanInput(),  # Keep CLI input
+            self._web_input,  # Add web input
         ]
 
         for container in skill_containers:
@@ -102,7 +112,9 @@ class UnitreeAgents2Runner(Resource):
 
         self._agent.register_skills(self._robot.connection)
 
-        self._agent.run_implicit_skill("human")
+        # Run both implicit skills
+        self._agent.run_implicit_skill("human")  # CLI input
+        self._agent.run_implicit_skill("web_human")  # Web input
 
         self._agent.start()
 
