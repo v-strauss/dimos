@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from datetime import datetime
 import inspect
 import logging
 import logging.handlers
 import os
 from pathlib import Path
 import sys
-import traceback
 import tempfile
-from datetime import datetime
+import traceback
 from typing import Any, Mapping, Optional
 
 import structlog
@@ -35,7 +35,7 @@ logging.getLogger("websockets.server").setLevel(logging.ERROR)
 logging.getLogger("FoxgloveServer").setLevel(logging.ERROR)
 logging.getLogger("asyncio").setLevel(logging.ERROR)
 
-_LOG_FILE_PATH: Optional[Path] = None
+_LOG_FILE_PATH: Path | None = None
 _LOG_FILE_WARNING_EMITTED = False
 
 
@@ -88,7 +88,7 @@ def _ensure_writable_directory(directory: Path) -> bool:
     return os.access(directory, os.W_OK)
 
 
-def _get_log_file_path() -> Optional[Path]:
+def _get_log_file_path() -> Path | None:
     for directory in _candidate_log_directories():
         if _ensure_writable_directory(directory):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -98,7 +98,7 @@ def _get_log_file_path() -> Optional[Path]:
     return None
 
 
-def _configure_structlog() -> Optional[Path]:
+def _configure_structlog() -> Path | None:
     global _LOG_FILE_PATH
 
     if _LOG_FILE_PATH:
