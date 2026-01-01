@@ -18,8 +18,8 @@ import asyncio
 from dimos_lcm.sensor_msgs import CameraInfo
 
 from dimos import core
-from dimos.hardware.camera.zed import ZEDModule
-from dimos.hardware.piper_arm import PiperArm
+from dimos.hardware.camera.module import CameraModule
+from dimos.hardware.so101_arm import SO101Arm
 from dimos.manipulation.visual_servoing.manipulation_module import ManipulationModule
 from dimos.msgs.sensor_msgs import Image
 from dimos.protocol import pubsub
@@ -29,16 +29,16 @@ from dimos.skills.skills import SkillLibrary
 from dimos.types.robot_capabilities import RobotCapability
 from dimos.utils.logging_config import setup_logger
 
-logger = setup_logger("dimos.robot.agilex.piper_arm")
+logger = setup_logger("dimos.robot.lerobot.so101_arm")
 
 
-class PiperArmRobot(Robot):
-    """Piper Arm robot with ZED camera and manipulation capabilities."""
+class SO101ArmRobot(Robot):
+    """SO101 Arm robot with RGB camera and manipulation capabilities."""
 
     def __init__(self, robot_capabilities: list[RobotCapability] | None = None) -> None:
         super().__init__()
         self.dimos = None
-        self.stereo_camera = None
+        self.camera = None
         self.manipulation_interface = None
         self.skill_library = SkillLibrary()
 
@@ -50,65 +50,52 @@ class PiperArmRobot(Robot):
 
     async def start(self) -> None:
         """Start the robot modules."""
-        # Start Dimos
-        self.dimos = core.start(2)  # Need 2 workers for ZED and manipulation modules
+        self.dimos = core.start(2)
         self.foxglove_bridge = FoxgloveBridge()
 
-        # Enable LCM auto-configuration
         pubsub.lcm.autoconf()
 
-        # Deploy ZED module
-        logger.info("Deploying ZED module...")
-        self.stereo_camera = self.dimos.deploy(
-            ZEDModule,
-            camera_id=0,
-            resolution="HD720",
-            depth_mode="NEURAL",
-            fps=30,
-            enable_tracking=False,  # We don't need tracking for manipulation
-            publish_rate=30.0,
-            frame_id="zed_camera",
+        # Deploy Camera Module
+        logger.info("Deploying camera module...")
+        self.camera = self.dimos.deploy(
+            CameraModule,
+            config=CameraModule.default_config(),  # or override camera_index, etc.
         )
 
-        # Configure ZED LCM transports
-        self.stereo_camera.color_image.transport = core.LCMTransport("/zed/color_image", Image)
-        self.stereo_camera.depth_image.transport = core.LCMTransport("/zed/depth_image", Image)
-        self.stereo_camera.camera_info.transport = core.LCMTransport("/zed/camera_info", CameraInfo)
+        # Configure camera LCM
+        self.camera.color_image.transport = core.LCMTransport("/camera/rgb", Image)
+        self.camera.camera_info.transport = core.LCMTransport("/camera/info", CameraInfo)
 
         # Deploy manipulation module
         logger.info("Deploying manipulation module...")
         self.manipulation_interface = self.dimos.deploy(
             ManipulationModule,
-            arm = PiperArm()
+            arm = SO101Arm()
         )
 
-        # Connect manipulation inputs to ZED outputs
-        self.manipulation_interface.rgb_image.connect(self.stereo_camera.color_image)
-        self.manipulation_interface.depth_image.connect(self.stereo_camera.depth_image)
-        self.manipulation_interface.camera_info.connect(self.stereo_camera.camera_info)
-
+        # Connect modules
+        self.manipulation_interface.rgb_image.connect(self.camera.color_image)
+        # self.manipulation_interface.depth_image.connect(self.camera.depth_image)
+        self.manipulation_interface.camera_info.connect(self.camera.camera_info)
+        
         # Configure manipulation output
-        self.manipulation_interface.viz_image.transport = core.LCMTransport(
-            "/manipulation/viz", Image
-        )
-
+        self.manipulation_interface.viz_image.transport = core.LCMTransport("/viz/output", Image)
+        
         # Print module info
         logger.info("Modules configured:")
-        print("\nZED Module:")
-        print(self.stereo_camera.io())
+        print("\Camera Module:")
+        print(self.camera.io())
         print("\nManipulation Module:")
         print(self.manipulation_interface.io())
 
         # Start modules
         logger.info("Starting modules...")
         self.foxglove_bridge.start()
-        self.stereo_camera.start()
+        self.camera.start()
         self.manipulation_interface.start()
-
-        # Give modules time to initialize
-        await asyncio.sleep(2)
-
-        logger.info("PiperArmRobot initialized and started")
+        
+        await asyncio.sleep(2)  # Allow initialization
+        logger.info("SO101ArmRobot initialized and started")
 
     def pick_and_place(
         self, pick_x: int, pick_y: int, place_x: int | None = None, place_y: int | None = None
@@ -147,28 +134,26 @@ class PiperArmRobot(Robot):
 
     def stop(self) -> None:
         """Stop all modules and clean up."""
-        logger.info("Stopping PiperArmRobot...")
+        logger.info("Stopping SO101ArmRobot...")
 
         try:
             if self.manipulation_interface:
                 self.manipulation_interface.stop()
 
-            if self.stereo_camera:
-                self.stereo_camera.stop()
+            if self.camera:
+                self.camera.stop()
         except Exception as e:
             logger.warning(f"Error stopping modules: {e}")
 
-        # Close dimos last to ensure workers are available for cleanup
         if self.dimos:
             self.dimos.close()
 
-        logger.info("PiperArmRobot stopped")
+        logger.info("SO101ArmRobot stopped")
 
 
-async def run_piper_arm() -> None:
-    """Run the Piper Arm robot."""
-    robot = PiperArmRobot()
-
+async def run_so101_arm() -> None:
+    """Run the SO101 Arm robot."""
+    robot = SO101ArmRobot()
     await robot.start()
 
     # Keep the robot running
@@ -182,4 +167,5 @@ async def run_piper_arm() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(run_piper_arm())
+    asyncio.run(run_so101_arm())
+

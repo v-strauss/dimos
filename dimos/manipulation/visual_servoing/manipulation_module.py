@@ -30,6 +30,7 @@ from reactivex.disposable import Disposable
 
 from dimos.core import In, Module, Out, rpc
 from dimos.hardware.piper_arm import PiperArm
+from dimos.hardware.so101_arm import SO101Arm
 from dimos.manipulation.visual_servoing.detection3d import Detection3DProcessor
 from dimos.manipulation.visual_servoing.pbvs import PBVS
 from dimos.manipulation.visual_servoing.utils import (
@@ -116,6 +117,7 @@ class ManipulationModule(Module):
 
     def __init__(
         self,
+        arm: PiperArm | SO101Arm = None,
         ee_to_camera_6dof: list | None = None,
         **kwargs,
     ) -> None:
@@ -131,7 +133,7 @@ class ManipulationModule(Module):
         """
         super().__init__(**kwargs)
 
-        self.arm = PiperArm()
+        self.arm = arm
 
         if ee_to_camera_6dof is None:
             ee_to_camera_6dof = [-0.065, 0.03, -0.095, 0.0, -1.57, 0.0]
