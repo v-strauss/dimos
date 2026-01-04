@@ -112,9 +112,30 @@ class PointCloud2(Timestamped):
         )
 
     # TODO what's the usual storage here? is it already numpy?
-    def as_numpy(self) -> np.ndarray:  # type: ignore[type-arg]
-        """Get points as numpy array."""
-        return np.asarray(self.pointcloud.points)
+    def as_numpy(
+        self, include_colors: bool = False
+    ) -> np.ndarray | tuple[np.ndarray, np.ndarray | None]:  # type: ignore[type-arg]
+        """Get points as numpy array, optionally with colors.
+
+        Args:
+            include_colors: If True, return a tuple of (points, colors).
+                           Colors are returned as Nx3 array in [0, 1] range,
+                           or None if the pointcloud has no colors.
+
+        Returns:
+            If include_colors=False: Nx3 numpy array of points
+            If include_colors=True: Tuple of (points, colors) where colors
+                                   is Nx3 array or None
+        """
+        points = np.asarray(self.pointcloud.points)
+        if not include_colors:
+            return points
+
+        if self.pointcloud.has_colors():
+            colors = np.asarray(self.pointcloud.colors)
+        else:
+            colors = None
+        return points, colors
 
     @functools.cache
     def get_axis_aligned_bounding_box(self) -> o3d.geometry.AxisAlignedBoundingBox:

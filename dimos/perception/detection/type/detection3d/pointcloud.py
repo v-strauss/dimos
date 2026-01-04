@@ -249,6 +249,7 @@ class Detection3DPC(Detection3D):
         depth_trunc: float = 10.0,
         statistical_nb_neighbors: int = 10,
         statistical_std_ratio: float = 0.5,
+        mask_erode_pixels: int = 3,
     ) -> ImageDetections3DPC:
         """Create 3D pointcloud detections from 2D detections and RGBD images.
 
@@ -263,6 +264,8 @@ class Detection3DPC(Detection3D):
             depth_trunc: Maximum depth value in meters
             statistical_nb_neighbors: Neighbors for statistical outlier removal
             statistical_std_ratio: Std ratio for statistical outlier removal
+            mask_erode_pixels: Number of pixels to erode the mask by to remove
+                              noisy depth edge points. Set to 0 to disable.
         """
         color_cv = color_image.to_opencv()
         if color_cv.ndim == 3 and color_cv.shape[2] == 3:
@@ -296,6 +299,17 @@ class Detection3DPC(Detection3D):
                 x1, y1 = max(0, x1), max(0, y1)
                 x2, y2 = min(w, x2), min(h, y2)
                 mask[y1:y2, x1:x2] = 255
+
+            # Erode mask to remove noisy depth edge points
+            if mask_erode_pixels > 0:
+                mask_uint8 = mask.astype(np.uint8)
+                if mask_uint8.max() == 1:
+                    mask_uint8 = mask_uint8 * 255
+                kernel_size = 2 * mask_erode_pixels + 1
+                erode_kernel = cv2.getStructuringElement(
+                    cv2.MORPH_ELLIPSE, (kernel_size, kernel_size)
+                )
+                mask = cv2.erode(mask_uint8, erode_kernel)
 
             # Apply mask to depth - set non-masked pixels to 0
             depth_masked = depth_cv.copy()

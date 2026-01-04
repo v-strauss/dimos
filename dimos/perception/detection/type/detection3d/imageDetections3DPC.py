@@ -60,20 +60,22 @@ class ImageDetections3DPC(ImageDetections["Detection3DPC"]):
         all_colors = []
 
         for i, det in enumerate(self.detections):
-            points = det.pointcloud.as_numpy()
+            points, original_colors = det.pointcloud.as_numpy(include_colors=True)
             if len(points) == 0:
                 continue
 
-            # Generate consistent color from track_id (same as 2D overlay)
             track_id = det.track_id if det.track_id >= 0 else i
             np.random.seed(abs(track_id))
-            color = np.random.randint(50, 255, 3) / 255.0
+            track_color = np.random.randint(50, 255, 3) / 255.0
 
-            # Create color array for all points in this detection
-            colors = np.tile(color, (len(points), 1))
+            if original_colors is not None:
+                blended_colors = 0.6 * original_colors + 0.4 * track_color
+                blended_colors = np.clip(blended_colors, 0.0, 1.0)
+            else:
+                blended_colors = np.tile(track_color, (len(points), 1))
 
             all_points.append(points)
-            all_colors.append(colors)
+            all_colors.append(blended_colors)
 
         if not all_points:
             return None
