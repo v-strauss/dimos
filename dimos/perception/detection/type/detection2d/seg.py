@@ -18,18 +18,19 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 import cv2
+from dimos_lcm.foxglove_msgs.ImageAnnotations import PointsAnnotation
+from dimos_lcm.foxglove_msgs.Point2 import Point2
 import numpy as np
 import torch
 
-from dimos_lcm.foxglove_msgs.ImageAnnotations import PointsAnnotation
-from dimos_lcm.foxglove_msgs.Point2 import Point2
 from dimos.msgs.foxglove_msgs.Color import Color
-from dimos.msgs.sensor_msgs import Image
 from dimos.perception.detection.type.detection2d.bbox import Bbox, Detection2DBBox
 from dimos.types.timestamped import to_ros_stamp
 
 if TYPE_CHECKING:
     from ultralytics.engine.results import Results
+
+    from dimos.msgs.sensor_msgs import Image
 
 
 @dataclass
@@ -98,9 +99,7 @@ class Detection2DSeg(Detection2DBBox):
         )
 
     @classmethod
-    def from_ultralytics_result(
-        cls, result: Results, idx: int, image: Image
-    ) -> Detection2DSeg:
+    def from_ultralytics_result(cls, result: Results, idx: int, image: Image) -> Detection2DSeg:
         """Create Detection2DSeg from ultralytics Results object with segmentation mask.
 
         Args:
@@ -199,4 +198,3 @@ class Detection2DSeg(Detection2DBBox):
             )
 
         return annotations
-

@@ -15,7 +15,6 @@
 from enum import Enum
 from typing import TYPE_CHECKING
 
-import numpy as np
 from ultralytics import YOLOE
 
 from dimos.msgs.sensor_msgs import Image
@@ -26,6 +25,7 @@ from dimos.utils.gpu_utils import is_cuda_available
 from dimos.utils.logging_config import setup_logger
 
 if TYPE_CHECKING:
+    import numpy as np
     from numpy.typing import NDArray
 
 logger = setup_logger()
@@ -96,9 +96,7 @@ class Yoloe2DDetector(Detector):
         if self.prompt_mode == YoloePromptMode.TEXT:
             if not self.text_prompts:
                 raise ValueError("text_prompts must be provided for TEXT mode")
-            self.model.set_classes(
-                self.text_prompts, self.model.get_text_pe(self.text_prompts)
-            )
+            self.model.set_classes(self.text_prompts, self.model.get_text_pe(self.text_prompts))
             logger.debug(f"Configured TEXT mode with classes: {self.text_prompts}")
 
         elif self.prompt_mode == YoloePromptMode.VISUAL:

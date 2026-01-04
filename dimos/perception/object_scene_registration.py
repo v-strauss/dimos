@@ -13,11 +13,11 @@
 # limitations under the License.
 
 import threading
+import time
 
 from cv_bridge import CvBridge
 import message_filters
 import numpy as np
-import time
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
@@ -28,11 +28,11 @@ from sensor_msgs.msg import (
     Image as ROSImage,
     PointCloud2 as ROSPointCloud2,
 )
+from std_msgs.msg import Header as ROSHeader
 from vision_msgs.msg import (
     Detection2DArray as ROSDetection2DArray,
     Detection3DArray as ROSDetection3DArray,
 )
-from std_msgs.msg import Header as ROSHeader
 
 from dimos.core import Module, rpc
 from dimos.msgs.sensor_msgs import CameraInfo, Image
@@ -148,10 +148,10 @@ class ObjectSceneRegistrationModule(Module):
         )
         self._sync.registerCallback(self._on_synced_images)
 
-        logger.info(f"Synchronized subscribers:")
+        logger.info("Synchronized subscribers:")
         logger.info(f"  Color: {self._image_topic}")
         logger.info(f"  Depth: {self._depth_topic}")
-        logger.info(f"Publishing:")
+        logger.info("Publishing:")
         logger.info(f"  2D detections: {self._detections_2d_topic}")
         logger.info(f"  3D detections: {self._detections_3d_topic}")
         logger.info(f"  Overlay: {self._overlay_topic}")

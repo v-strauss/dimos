@@ -16,10 +16,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from builtin_interfaces.msg import Time as ROSTime
 import cv2
 import numpy as np
-
-from builtin_interfaces.msg import Time as ROSTime
 from std_msgs.msg import Header as ROSHeader
 from vision_msgs.msg import (
     BoundingBox2D as ROSBoundingBox2D,
@@ -199,12 +198,8 @@ class ImageDetections2D(ImageDetections[Detection2D]):
             if confidence > 0:
                 label += f" ({confidence:.2f})"
 
-            (text_w, text_h), baseline = cv2.getTextSize(
-                label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1
-            )
-            cv2.rectangle(
-                img, (x1, y1 - text_h - baseline - 2), (x1 + text_w, y1), color, -1
-            )
+            (text_w, text_h), baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+            cv2.rectangle(img, (x1, y1 - text_h - baseline - 2), (x1 + text_w, y1), color, -1)
             cv2.putText(
                 img,
                 label,
@@ -215,4 +210,6 @@ class ImageDetections2D(ImageDetections[Detection2D]):
                 1,
             )
 
-        return Image.from_numpy(img, format=self.image.format, ts=self.image.ts, frame_id=self.image.frame_id)
+        return Image.from_numpy(
+            img, format=self.image.format, ts=self.image.ts, frame_id=self.image.frame_id
+        )

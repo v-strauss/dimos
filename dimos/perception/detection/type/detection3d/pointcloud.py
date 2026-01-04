@@ -18,24 +18,31 @@ from dataclasses import dataclass
 import functools
 from typing import TYPE_CHECKING, Any
 
+import cv2
 from dimos_lcm.builtin_interfaces import Duration
 from dimos_lcm.foxglove_msgs import CubePrimitive, SceneEntity, TextPrimitive
 from dimos_lcm.geometry_msgs import Point, Pose, Quaternion, Vector3 as LCMVector3
+from dimos_lcm.vision_msgs import ObjectHypothesis, ObjectHypothesisWithPose
 import numpy as np
 import open3d as o3d
 
 from dimos.msgs.foxglove_msgs.Color import Color
-import cv2
-from dimos.msgs.geometry_msgs import PoseStamped, Quaternion as DimosQuaternion, Transform, Vector3
+from dimos.msgs.geometry_msgs import (
+    Pose,
+    PoseStamped,
+    Quaternion,
+    Quaternion as DimosQuaternion,
+    Transform,
+    Vector3,
+)
 from dimos.msgs.sensor_msgs import Image, PointCloud2
-from dimos.msgs.vision_msgs import Detection3D as ROSDetection3D
-from dimos_lcm.vision_msgs import ObjectHypothesis, ObjectHypothesisWithPose
-from dimos.msgs.geometry_msgs import Pose, Quaternion
 from dimos.msgs.std_msgs import Header
-from dimos.perception.detection.type.detection2d import ImageDetections2D
+from dimos.msgs.vision_msgs import Detection3D as ROSDetection3D
 from dimos.perception.detection.type.detection2d.seg import Detection2DSeg
 from dimos.perception.detection.type.detection3d.base import Detection3D
-from dimos.perception.detection.type.detection3d.imageDetections3DPC import ImageDetections3DPC
+from dimos.perception.detection.type.detection3d.imageDetections3DPC import (
+    ImageDetections3DPC,
+)
 from dimos.perception.detection.type.detection3d.pointcloud_filters import (
     PointCloudFilter,
     radius_outlier,
@@ -47,10 +54,7 @@ from dimos.types.timestamped import to_ros_stamp
 if TYPE_CHECKING:
     from dimos_lcm.sensor_msgs import CameraInfo
 
-    from dimos.perception.detection.type.detection2d import Detection2DBBox
-    from dimos.perception.detection.type.detection3d.imageDetections3DPC import (
-        ImageDetections3DPC,
-    )
+    from dimos.perception.detection.type.detection2d import Detection2DBBox, ImageDetections2D
 
 
 @dataclass

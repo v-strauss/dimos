@@ -25,4 +25,3 @@ class Detection3D(LCMDetection3D):
     @property
     def ts(self) -> float:
         return to_timestamp(self.header.stamp)
-

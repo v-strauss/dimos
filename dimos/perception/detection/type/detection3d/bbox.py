@@ -18,11 +18,11 @@ from dataclasses import dataclass
 import functools
 from typing import Any
 
-from dimos.msgs.geometry_msgs import PoseStamped, Transform, Vector3
+from dimos_lcm.vision_msgs import ObjectHypothesis, ObjectHypothesisWithPose
+
+from dimos.msgs.geometry_msgs import Pose, PoseStamped, Quaternion, Transform, Vector3
 from dimos.msgs.std_msgs import Header
 from dimos.msgs.vision_msgs import Detection3D
-from dimos_lcm.vision_msgs import ObjectHypothesis, ObjectHypothesisWithPose
-from dimos.msgs.geometry_msgs import Pose, Quaternion
 from dimos.perception.detection.type.detection2d import Detection2DBBox
 
 
@@ -75,7 +75,6 @@ class Detection3DBBox(Detection2DBBox):
         msg.bbox.size = self.size
 
         return msg
-
 
     def to_repr_dict(self) -> dict[str, Any]:
         # Calculate distance from camera

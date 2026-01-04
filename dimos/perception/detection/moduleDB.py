@@ -17,8 +17,8 @@ import threading
 import time
 from typing import Any
 
-from dimos_lcm.foxglove_msgs.ImageAnnotations import ImageAnnotations
 from dimos_lcm.foxglove_msgs import SceneUpdate
+from dimos_lcm.foxglove_msgs.ImageAnnotations import ImageAnnotations
 from reactivex.observable import Observable
 
 from dimos import spec

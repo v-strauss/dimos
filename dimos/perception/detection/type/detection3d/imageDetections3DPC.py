@@ -16,7 +16,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
 from builtin_interfaces.msg import Time as ROSTime
 from dimos_lcm.foxglove_msgs import SceneUpdate
 from geometry_msgs.msg import (
@@ -25,6 +24,7 @@ from geometry_msgs.msg import (
     Quaternion as ROSQuaternion,
     Vector3 as ROSVector3,
 )
+import numpy as np
 from std_msgs.msg import Header as ROSHeader
 from vision_msgs.msg import (
     BoundingBox3D as ROSBoundingBox3D,
@@ -95,6 +95,7 @@ class ImageDetections3DPC(ImageDetections["Detection3DPC"]):
 
         # Set colors on the open3d pointcloud
         import open3d as o3d
+
         combined_pc.pointcloud.colors = o3d.utility.Vector3dVector(combined_colors)
 
         return combined_pc
