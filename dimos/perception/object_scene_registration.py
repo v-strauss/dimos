@@ -310,7 +310,7 @@ class ObjectSceneRegistrationModule(Module):
         """Background thread for async mesh generation requests."""
         while self._running:
             try:
-                object_id, color_image, depth_image, bbox = self._mesh_request_queue.get(
+                object_id, color_image, depth_image, bbox, camera_transform = self._mesh_request_queue.get(
                     timeout=1.0
                 )
             except Empty:
@@ -358,7 +358,7 @@ class ObjectSceneRegistrationModule(Module):
                             obj.mesh_dimensions = result.get("mesh_dimensions")
                             obj.fp_position = result.get("fp_position")
                             obj.fp_orientation = result.get("fp_orientation")
-
+                            obj.camera_transform = camera_transform  # Store request-time transform
                 self._mesh_request_states[object_id] = "DONE"
                 logger.info(f"Mesh complete for object_id={object_id}")
 
@@ -700,14 +700,13 @@ class ObjectSceneRegistrationModule(Module):
                 status = self._mesh_request_states.get(obj.object_id)
                 if status in (None,):  # Only queue if never requested
                     self._mesh_request_states[obj.object_id] = "PENDING"
-                    self._mesh_request_queue.put(
-                        (
-                            obj.object_id,
-                            color_image,
-                            depth_image,
-                            obj.bbox,
-                        )
-                    )
+                    self._mesh_request_queue.put((
+                        obj.object_id,
+                        color_image,
+                        depth_image,
+                        obj.bbox,
+                        camera_transform,  # Capture transform at request time
+                    ))
 
         detections_3d = to_detection3d_array(objects)
         ros_detections_3d = detections_3d.to_ros_msg()
@@ -720,9 +719,9 @@ class ObjectSceneRegistrationModule(Module):
 
         # Publish mesh markers for RViz (permanent objects with mesh_path)
         if self._mesh_markers_pub is not None and self._object_db is not None:
-            self._publish_mesh_markers(camera_transform=camera_transform)
+            self._publish_mesh_markers()
 
-    def _publish_mesh_markers(self, camera_transform: Transform) -> None:
+    def _publish_mesh_markers(self) -> None:
         """Publish RViz mesh markers for permanent objects with saved mesh files."""
         if self._object_db is None:
             return
@@ -740,18 +739,21 @@ class ObjectSceneRegistrationModule(Module):
                 continue
 
             # Determine pose in target_frame (map)
+            # Use camera_transform stored on object (from mesh request time)
             if obj.fp_position is not None and obj.fp_orientation is not None:
+                if obj.camera_transform is None:
+                    continue  # Can't transform without stored camera pose
                 T_camera_object = Transform(
                     translation=Vector3(*obj.fp_position),
                     rotation=Quaternion(*obj.fp_orientation),
-                    frame_id=camera_transform.child_frame_id,
+                    frame_id=obj.camera_transform.child_frame_id,
                     child_frame_id=obj.object_id,
                     ts=obj.ts,
                 )
-                T_map_object = camera_transform + T_camera_object
+                T_map_object = obj.camera_transform + T_camera_object
                 pos = T_map_object.translation
                 rot = T_map_object.rotation
-                frame_id = camera_transform.frame_id
+                frame_id = obj.camera_transform.frame_id
             elif obj.center is not None:
                 pos = obj.center
                 rot = Quaternion(0.0, 0.0, 0.0, 1.0)
