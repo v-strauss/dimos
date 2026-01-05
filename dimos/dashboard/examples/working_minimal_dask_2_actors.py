@@ -23,7 +23,7 @@ import pickle
 import sys
 import threading
 import time
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from distributed import Client
 import rerun as rr  # pip install rerun-sdk
@@ -38,22 +38,12 @@ rerun_info = {
     "url": f"rerun+http://127.0.0.1:{grpc_port}/proxy",
 }
 
-from dimos.core import Module, Out, pLCMTransport, pSHMTransport
-from dimos.core.blueprints import autoconnect
-from dimos.core.core import rpc
-from dimos.dashboard.module import Dashboard, RerunConnection
-from dimos.msgs.sensor_msgs import Image
-from dimos.robot.unitree_webrtc.type.lidar import LidarMessage
-
-if TYPE_CHECKING:
-    from dimos.msgs.nav_msgs import Odometry
+from dimos.core.state import start, state
 
 
-class Dashboard(Module):
-    @rpc
+class Dashboard_DaskActor:
     def start(self):
-        super().start()
-
+        start()
         rr.init(rerun_info["logging_id"], spawn=False, recording_id=rerun_info["logging_id"])
         default_blueprint = rrb.Blueprint(
             rrb.Tabs(
@@ -71,38 +61,36 @@ class Dashboard(Module):
             default_blueprint=default_blueprint,
             server_memory_limit=rerun_info["server_memory_limit"],
         )
+        state["dashboard"] = "running"
 
-        #
-        # Manual control of Rerun viewer (simple html server)
-        #
-        class Handler(BaseHTTPRequestHandler):
-            def do_GET(self):
-                self.send_response(200)
-                self.send_header("Content-Type", "text/html; charset=utf-8")
-                self.end_headers()
-                self.wfile.write(
-                    f"""
-                    <body>
-                        <style>body {{ margin: 0; border: 0; }}\ncanvas {{ width: 100vw !important; height: 100vh !important; }}</style>
-                        <script type="module">
-                            import {{ WebViewer }} from "https://esm.sh/@rerun-io/web-viewer@0.27.2";
-                            const viewer = new WebViewer();
-                            viewer.start("{rerun_info["url"]}", document.body);
-                        </script>
-                    </body>
-                """.encode()
-                )
+        # #
+        # # Manual control of Rerun viewer (simple html server)
+        # #
+        # class Handler(BaseHTTPRequestHandler):
+        #     def do_GET(self):
+        #         self.send_response(200)
+        #         self.send_header("Content-Type", "text/html; charset=utf-8")
+        #         self.end_headers()
+        #         self.wfile.write(
+        #             f"""
+        #             <body>
+        #                 <style>body {{ margin: 0; border: 0; }}\ncanvas {{ width: 100vw !important; height: 100vh !important; }}</style>
+        #                 <script type="module">
+        #                     import {{ WebViewer }} from "https://esm.sh/@rerun-io/web-viewer@0.27.2";
+        #                     const viewer = new WebViewer();
+        #                     viewer.start("{rerun_info["url"]}", document.body);
+        #                 </script>
+        #             </body>
+        #         """.encode()
+        #         )
 
-            def log_message(self, *args):
-                return
+        #     def log_message(self, *args):
+        #         return
 
-        host = "127.0.0.1"
-        port = 4000
-        print(
-            f"Dashboard running at http://localhost:4000 (Rerun gRPC on port {rerun_info['grpc_port']})"
-        )
-        server = HTTPServer((host, port), Handler)
-        threading.Thread(target=server.serve_forever, name="dashboard-server", daemon=True).start()
+        # host = "127.0.0.1"
+        # port = 4000
+        # server = HTTPServer((host, port), Handler)
+        # threading.Thread(target=server.serve_forever, name="dashboard-server", daemon=True).start()
 
 
 DEFAULT_REPLAY_PATHS = {
@@ -125,14 +113,8 @@ def iter_yaml_data_line_by_line(path):
                 continue
 
 
-class DataReplay(Module):
-    color_image: Out[Image] = None  # type: ignore[assignment]
-    lidar: Out[LidarMessage] = None  # type: ignore[assignment]
-    odom: Out[Odometry] = None  # type: ignore[assignment]
-
-    @rpc
+class ReplayYamlData_DaskActor:
     def start(self) -> bool:
-        super().start()
         for output_name, yaml_filepath in DEFAULT_REPLAY_PATHS.items():
             threading.Thread(
                 target=self._publish_stream,
@@ -144,35 +126,40 @@ class DataReplay(Module):
 
     def _publish_stream(self, yaml_filepath):
         print("starting replay of data from " + yaml_filepath)
-        stream = rr.RecordingStream(rerun_info["logging_id"], recording_id=rerun_info["logging_id"])
-        stream.connect_grpc(rerun_info["url"])
+        stream = None
         while True:  # restart if ran out of messages
             for log_path, payload in iter_yaml_data_line_by_line(yaml_filepath):
-                print("logging " + yaml_filepath)
-                stream.log(log_path, payload, strict=True)
+                if not stream:
+                    if state.get("dashboard", None):
+                        stream = rr.RecordingStream(
+                            rerun_info["logging_id"], recording_id=rerun_info["logging_id"]
+                        )
+                        stream.connect_grpc(rerun_info["url"])
+                if stream:
+                    print("logging " + yaml_filepath)
+                    stream.log(log_path, payload, strict=True)
 
 
 # ------------------------------ Entrypoint --------------------------------- #
-blueprint = (
-    autoconnect(
-        DataReplay.blueprint(),
-        Dashboard.blueprint(),
-    )
-    .transports(
-        {
-            ("color_image", Image): pSHMTransport("/replay/color_image"),
-            ("lidar", LidarMessage): pLCMTransport("/replay/lidar"),
-        }
-    )
-    .global_config(n_dask_workers=1, threads_per_worker=4)
-)
-
-
-def main() -> None:
-    coordinator = blueprint.build()
-    print("Data replay running. Press Ctrl+C to stop.")
-    coordinator.loop()
-
-
 if __name__ == "__main__":
-    main()
+    print("Starting example")
+    client = Client(
+        n_workers=1,
+        threads_per_worker=4,
+    )
+    replayer = client.submit(ReplayYamlData_DaskActor, actor=True).result()
+    replayer.start().result()
+    dashboard = client.submit(Dashboard_DaskActor, actor=True).result()
+    dashboard.start().result()
+
+    print(
+        f"Dashboard running at http://localhost:4000 (Rerun gRPC on port {rerun_info['grpc_port']})"
+    )
+    print("Press Ctrl+C to stop...")
+    try:
+        while True:
+            time.sleep(1.0)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        client.close()

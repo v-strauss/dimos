@@ -1,0 +1,590 @@
+Initialized dimos local cluster with 1 workers, memory limit: auto
+[2m2025-12-21T03:36:07.136577Z[0m [[32m[1minfo     [0m] [1mDeployed module.                                            [0m [[0m[1m[34mdimos/core/__init__.py[0m][0m [36mmodule[0m=[35mDashboard[0m [36mworker_id[0m=[35m0[0m
+[2m2025-12-21T03:36:07.200453Z[0m [[32m[1minfo     [0m] [1mDeployed module.                                            [0m [[0m[1m[34mdimos/core/__init__.py[0m][0m [36mmodule[0m=[35mDataReplay[0m [36mworker_id[0m=[35m0[0m
+[2025-12-21T03:36:07Z DEBUG re_chunk::batcher] creating new chunk batcher config=ChunkBatcherConfig { flush_tick: 200ms, flush_num_bytes: 1048576, flush_num_rows: 18446744073709551615, chunk_max_rows_if_unsorted: 256, max_commands_in_flight: None, max_chunks_in_flight: None }
+[2025-12-21T03:36:07Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:36:07Z DEBUG re_chunk::batcher] creating new chunk batcher config=ChunkBatcherConfig { flush_tick: 200ms, flush_num_bytes: 1048576, flush_num_rows: 18446744073709551615, chunk_max_rows_if_unsorted: 256, max_commands_in_flight: None, max_chunks_in_flight: None }
+[2025-12-21T03:36:07Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Blueprint, "dask_actor_demo", "rec_9b2de431250845e4b0d2b90e549a96ab")
+[2025-12-21T03:36:07Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Blueprint, "dask_actor_demo", "rec_9b2de431250845e4b0d2b90e549a96ab")
+[2025-12-21T03:36:08Z DEBUG re_chunk::batcher] creating new chunk batcher config=ChunkBatcherConfig { flush_tick: 200ms, flush_num_bytes: 1048576, flush_num_rows: 18446744073709551615, chunk_max_rows_if_unsorted: 256, max_commands_in_flight: None, max_chunks_in_flight: None }
+[2025-12-21T03:36:08Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Blueprint, "dask_actor_demo", "rec_f2c2cabae7774a64bc7089800e03ef00")
+[2025-12-21T03:36:08Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Blueprint, "dask_actor_demo", "rec_f2c2cabae7774a64bc7089800e03ef00")
+[2025-12-21T03:36:08Z DEBUG re_memory::memory_limit] Setting memory limit to 4.0 GiB, which is 25% of total available memory (16.0 GiB).
+[2025-12-21T03:36:08Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:36:08Z INFO  re_grpc_server] Listening for gRPC connections on 0.0.0.0:9876. Connect by running `rerun --connect rerun+http://127.0.0.1:9876/proxy`
+[2025-12-21T03:36:08Z DEBUG re_chunk::batcher] creating new chunk batcher config=ChunkBatcherConfig { flush_tick: 200ms, flush_num_bytes: 1048576, flush_num_rows: 18446744073709551615, chunk_max_rows_if_unsorted: 256, max_commands_in_flight: None, max_chunks_in_flight: None }
+[2025-12-21T03:36:08Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:36:08Z DEBUG re_chunk::batcher] creating new chunk batcher config=ChunkBatcherConfig { flush_tick: 200ms, flush_num_bytes: 1048576, flush_num_rows: 18446744073709551615, chunk_max_rows_if_unsorted: 256, max_commands_in_flight: None, max_chunks_in_flight: None }
+[2025-12-21T03:36:08Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:36:08Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:36:08Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:36:08Z DEBUG re_grpc_client::write] Connected to rerun+http://127.0.0.1:9876/proxy
+[2025-12-21T03:36:08Z DEBUG re_grpc_client::write] Connected to rerun+http://127.0.0.1:9876/proxy
+Dashboard running at http://localhost:4000 (Rerun gRPC on port 9876)
+starting replay of data from /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+starting replay of data from /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yamlData replay running. Press Ctrl+C to stop.
+Shutting down (signal 2)...
+[2m2025-12-21T03:37:43.561138Z[0m [[32m[1minfo     [0m] [1mSharedMemory PubSub stopped.                                [0m [[0m[1m[34mdimos/protocol/pubsub/shmpubsub.py[0m][0m
+2025-12-20 22:37:43,716 - distributed.worker - ERROR - Failed to communicate with scheduler during heartbeat.
+Traceback (most recent call last):
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/comm/tcp.py", line 226, in read
+    frames_nosplit_nbytes_bin = await stream.read_bytes(fmt_size)
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tornado.iostream.StreamClosedError: Stream is closed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/worker.py", line 1267, in heartbeat
+    response = await retry_operation(
+               ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/utils_comm.py", line 416, in retry_operation
+    return await retry(
+           ^^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/utils_comm.py", line 395, in retry
+    return await coro()
+           ^^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/core.py", line 1259, in send_recv_from_rpc
+    return await send_recv(comm=comm, op=key, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/core.py", line 1018, in send_recv
+    response = await comm.read(deserializers=deserializers)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/comm/tcp.py", line 237, in read
+    convert_stream_closed_error(self, e)
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/comm/tcp.py", line 137, in convert_stream_closed_error
+    raise CommClosedError(f"in {obj}: {exc}") from exc
+distributed.comm.core.CommClosedError: in <TCP (closed) ConnectionPool.heartbeat_worker local=tcp://127.0.0.1:58296 remote=tcp://127.0.0.1:58282>: Stream is closed
+Process Dask Worker process (from Nanny):
+Traceback (most recent call last):
+  File "/tmp/virtual_homes/dimos/.nix-profile/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/virtual_homes/dimos/.nix-profile/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/nanny.py", line 985, in run
+    await worker.finished()
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/core.py", line 494, in finished
+    await self._event_finished.wait()
+  File "/tmp/virtual_homes/dimos/.nix-profile/lib/python3.12/asyncio/locks.py", line 212, in wait
+    await fut
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/tmp/virtual_homes/dimos/.nix-profile/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/tmp/virtual_homes/dimos/.nix-profile/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/process.py", line 202, in _run
+    target(*args, **kwargs)
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/nanny.py", line 1023, in _run
+    asyncio_run(run(), loop_factory=get_loop_factory())
+  File "/tmp/virtual_homes/dimos/.nix-profile/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/tmp/virtual_homes/dimos/.nix-profile/lib/python3.12/asyncio/runners.py", line 123, in run
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+[2025-12-21T03:37:44Z DEBUG rerun_bindings::python_bridge] Shutting down the Rerun SDK
+[2025-12-21T03:37:44Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:37:44Z DEBUG re_grpc_server] smart channel sender closed, closing receiver
+[2025-12-21T03:37:44Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Blueprint, "dask_actor_demo", "rec_9b2de431250845e4b0d2b90e549a96ab")
+[2025-12-21T03:37:44Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Blueprint, "dask_actor_demo", "rec_f2c2cabae7774a64bc7089800e03ef00")
+[2025-12-21T03:37:44Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:37:44Z DEBUG re_grpc_client::write] Shutting down message proxy client
+[2025-12-21T03:37:44Z DEBUG re_grpc_client::write] Shutting down client without flush
+[2025-12-21T03:37:44Z DEBUG re_grpc_client::write] Message proxy client has shut down
+[2025-12-21T03:37:44Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:37:44Z DEBUG re_grpc_client::write] Shutting down message proxy client
+[2025-12-21T03:37:44Z DEBUG re_grpc_client::write] Shutting down client without flush
+[2025-12-21T03:37:44Z DEBUG re_grpc_client::write] Message proxy client has shut down
+[2025-12-21T03:37:44Z DEBUG rerun_bindings::python_bridge] Shutting down the Rerun SDK

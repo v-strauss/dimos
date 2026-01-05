@@ -44,6 +44,7 @@ from dimos.core.core import rpc
 from dimos.msgs.sensor_msgs import Image
 from dimos.robot.unitree_webrtc.type.lidar import LidarMessage
 
+
 class Dashboard(Module):
     @rpc
     def start(self):

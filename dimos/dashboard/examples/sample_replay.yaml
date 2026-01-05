@@ -1,0 +1,9 @@
+- kind: text
+  path: /logs
+  payload: "Hello from the Dask actor!"
+- kind: points3d
+  path: /points
+  positions:
+    - [0.0, 0.0, 0.0]
+    - [1.0, 0.0, 0.0]
+    - [1.0, 1.0, 0.0]

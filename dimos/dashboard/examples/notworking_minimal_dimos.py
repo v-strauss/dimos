@@ -23,7 +23,7 @@ import pickle
 import sys
 import threading
 import time
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from distributed import Client
 import rerun as rr  # pip install rerun-sdk
@@ -38,9 +38,22 @@ rerun_info = {
     "url": f"rerun+http://127.0.0.1:{grpc_port}/proxy",
 }
 
+from dimos.core import Module, Out, pLCMTransport, pSHMTransport
+from dimos.core.blueprints import autoconnect
+from dimos.core.core import rpc
+from dimos.dashboard.module import Dashboard, RerunConnection
+from dimos.msgs.sensor_msgs import Image
+from dimos.robot.unitree_webrtc.type.lidar import LidarMessage
 
-class Dashboard_DaskActor:
+if TYPE_CHECKING:
+    from dimos.msgs.nav_msgs import Odometry
+
+
+class Dashboard(Module):
+    @rpc
     def start(self):
+        super().start()
+
         rr.init(rerun_info["logging_id"], spawn=False, recording_id=rerun_info["logging_id"])
         default_blueprint = rrb.Blueprint(
             rrb.Tabs(
@@ -53,6 +66,7 @@ class Dashboard_DaskActor:
             )
         )
         rr.send_blueprint(default_blueprint)
+        time.sleep(1)
         rr.serve_grpc(
             grpc_port=rerun_info["grpc_port"],
             default_blueprint=default_blueprint,
@@ -85,6 +99,9 @@ class Dashboard_DaskActor:
 
         host = "127.0.0.1"
         port = 4000
+        print(
+            f"Dashboard running at http://localhost:4000 (Rerun gRPC on port {rerun_info['grpc_port']})"
+        )
         server = HTTPServer((host, port), Handler)
         threading.Thread(target=server.serve_forever, name="dashboard-server", daemon=True).start()
 
@@ -109,8 +126,14 @@ def iter_yaml_data_line_by_line(path):
                 continue
 
 
-class ReplayYamlData_DaskActor:
+class DataReplay(Module):
+    color_image: Out[Image] = None  # type: ignore[assignment]
+    lidar: Out[LidarMessage] = None  # type: ignore[assignment]
+    odom: Out[Odometry] = None  # type: ignore[assignment]
+
+    @rpc
     def start(self) -> bool:
+        super().start()
         for output_name, yaml_filepath in DEFAULT_REPLAY_PATHS.items():
             threading.Thread(
                 target=self._publish_stream,
@@ -131,25 +154,26 @@ class ReplayYamlData_DaskActor:
 
 
 # ------------------------------ Entrypoint --------------------------------- #
-if __name__ == "__main__":
-    print("Starting example")
-    client = Client(
-        n_workers=1,
-        threads_per_worker=4,
+blueprint = (
+    autoconnect(
+        Dashboard.blueprint(),
+        DataReplay.blueprint(),
     )
-    dashboard = client.submit(Dashboard_DaskActor, actor=True).result()
-    replayer = client.submit(ReplayYamlData_DaskActor, actor=True).result()
-    dashboard.start().result()
-    replayer.start().result()
+    .transports(
+        {
+            ("color_image", Image): pSHMTransport("/replay/color_image"),
+            ("lidar", LidarMessage): pLCMTransport("/replay/lidar"),
+        }
+    )
+    .global_config(n_dask_workers=1, threads_per_worker=4)
+)
 
-    print(
-        f"Dashboard running at http://localhost:4000 (Rerun gRPC on port {rerun_info['grpc_port']})"
-    )
-    print("Press Ctrl+C to stop...")
-    try:
-        while True:
-            time.sleep(1.0)
-    except KeyboardInterrupt:
-        pass
-    finally:
-        client.close()
+
+def main() -> None:
+    coordinator = blueprint.build()
+    print("Data replay running. Press Ctrl+C to stop.")
+    coordinator.loop()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,72 @@
+Initialized dimos local cluster with 1 workers, memory limit: auto
+[2m2025-12-21T03:17:10.944183Z[0m [[32m[1minfo     [0m] [1mDeployed module.                                            [0m [[0m[1m[34mdimos/core/__init__.py[0m][0m [36mmodule[0m=[35mDataReplay[0m [36mworker_id[0m=[35m0[0m
+[2m2025-12-21T03:17:11.013896Z[0m [[32m[1minfo     [0m] [1mDeployed module.                                            [0m [[0m[1m[34mdimos/core/__init__.py[0m][0m [36mmodule[0m=[35mDashboard[0m [36mworker_id[0m=[35m0[0m
+[2025-12-21T03:17:11Z DEBUG re_chunk::batcher] creating new chunk batcher config=ChunkBatcherConfig { flush_tick: 200ms, flush_num_bytes: 1048576, flush_num_rows: 18446744073709551615, chunk_max_rows_if_unsorted: 256, max_commands_in_flight: None, max_chunks_in_flight: None }
+[2025-12-21T03:17:11Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:17:11Z DEBUG re_chunk::batcher] creating new chunk batcher config=ChunkBatcherConfig { flush_tick: 200ms, flush_num_bytes: 1048576, flush_num_rows: 18446744073709551615, chunk_max_rows_if_unsorted: 256, max_commands_in_flight: None, max_chunks_in_flight: None }
+[2025-12-21T03:17:11Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:17:11Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:17:11Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:17:11Z DEBUG re_grpc_client::write] Failed to connect to rerun+http://127.0.0.1:9876/proxy: transport error, retrying…
+[2025-12-21T03:17:11Z DEBUG re_grpc_client::write] Failed to connect to rerun+http://127.0.0.1:9876/proxy: transport error, retrying…
+[2025-12-21T03:17:16Z DEBUG re_grpc_client::write] Failed to connect to rerun+http://127.0.0.1:9876/proxy: transport error, retrying…
+[2025-12-21T03:17:16Z DEBUG re_grpc_client::write] Failed to connect to rerun+http://127.0.0.1:9876/proxy: transport error, retrying…
+starting replay of data from /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_color_image.flat.yaml
+starting replay of data from /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+[2m2025-12-21T03:17:17.072003Z[0m [[31m[1merror    [0m] [1mException in RPC handler for Dashboard/start: gRPC has been unable to connect to rerun+http://127.0.0.1:9876/proxy for 6s[0m [[0m[1m[34mdimos/protocol/rpc/pubsubrpc.py[0m][0m
+dimos.protocol.rpc.rpc_utils.RemoteError: [Remote builtins.RuntimeError] gRPC has been unable to connect to rerun+http://127.0.0.1:9876/proxy for 6s
+
+Remote traceback:
+Traceback (most recent call last):
+  File "/Users/jeffhykin/repos/dimos/dimos/protocol/rpc/pubsubrpc.py", line 269, in execute_and_respond
+    response = f(*args[0], **args[1])
+               ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/dimos/protocol/rpc/spec.py", line 94, in override_f
+    return getattr(module, fname)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/dimos/dashboard/examples/notworking_minimal_dimos.py", line 57, in start
+    rr.init(rerun_info["logging_id"], spawn=False, recording_id=rerun_info["logging_id"])
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/rerun_sdk/rerun/__init__.py", line 343, in init
+    bindings.flush_and_cleanup_orphaned_recordings()
+RuntimeError: gRPC has been unable to connect to rerun+http://127.0.0.1:9876/proxy for 6s
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jeffhykin/repos/dimos/dimos/dashboard/examples/notworking_minimal_dimos.py", line 178, in <module>
+    main()
+  File "/Users/jeffhykin/repos/dimos/dimos/dashboard/examples/notworking_minimal_dimos.py", line 172, in main
+    coordinator = blueprint.build()
+                  ^^^^^^^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/dimos/core/blueprints.py", line 286, in build
+    module_coordinator.start_all_modules()
+  File "/Users/jeffhykin/repos/dimos/dimos/core/module_coordinator.py", line 60, in start_all_modules
+    module.start()
+  File "/Users/jeffhykin/repos/dimos/dimos/core/rpc_client.py", line 69, in __call__
+    result, unsub_fn = self._rpc.call_sync(f"{self._remote_name}/{self._name}", (args, kwargs))  # type: ignore[arg-type]
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/dimos/protocol/rpc/spec.py", line 62, in call_sync
+    raise result
+RuntimeError: gRPC has been unable to connect to rerun+http://127.0.0.1:9876/proxy for 6s
+[2025-12-21T03:17:17Z DEBUG rerun_bindings::python_bridge] Shutting down the Rerun SDK
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+logging /Users/jeffhykin/repos/dimos/dimos/dashboard/examples/example_data_lidar.flat.yaml
+[2025-12-21T03:17:17Z DEBUG rerun_bindings::python_bridge] Shutting down the Rerun SDK
+[2025-12-21T03:17:18Z ERROR re_sdk::recording_stream] Failed to flush previous sink: gRPC has been unable to connect to rerun+http://127.0.0.1:9876/proxy for 8s
+[2025-12-21T03:17:18Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:17:18Z DEBUG re_grpc_client::write] Shutting down message proxy client
+[2025-12-21T03:17:19Z ERROR re_grpc_client::write] Failed to flush gRPC messages during shutdown: gRPC has been unable to connect to rerun+http://127.0.0.1:9876/proxy for 9s
+[2025-12-21T03:17:19Z DEBUG re_grpc_client::write] Shutting down client without flush
+[2025-12-21T03:17:19Z DEBUG re_grpc_client::write] Message proxy client has shut down
+[2025-12-21T03:17:20Z ERROR re_sdk::recording_stream] Failed to flush previous sink: gRPC has been unable to connect to rerun+http://127.0.0.1:9876/proxy for 10s
+[2025-12-21T03:17:20Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:17:20Z DEBUG re_grpc_client::write] Shutting down message proxy client
+[2025-12-21T03:17:21Z DEBUG re_grpc_client::write] Failed to connect to rerun+http://127.0.0.1:9876/proxy: transport error, retrying…
+2025-12-20 22:17:21,185 - distributed.nanny - WARNING - Worker process still alive after 4.0 seconds, killing
+/tmp/virtual_homes/dimos/.nix-profile/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 1 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '

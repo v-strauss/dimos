@@ -1,0 +1,42 @@
+Starting example
+[2025-12-21T03:27:17Z DEBUG re_chunk::batcher] creating new chunk batcher config=ChunkBatcherConfig { flush_tick: 200ms, flush_num_bytes: 1048576, flush_num_rows: 18446744073709551615, chunk_max_rows_if_unsorted: 256, max_commands_in_flight: None, max_chunks_in_flight: None }
+[2025-12-21T03:27:17Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:27:18Z DEBUG re_chunk::batcher] creating new chunk batcher config=ChunkBatcherConfig { flush_tick: 200ms, flush_num_bytes: 1048576, flush_num_rows: 18446744073709551615, chunk_max_rows_if_unsorted: 256, max_commands_in_flight: None, max_chunks_in_flight: None }
+[2025-12-21T03:27:18Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Blueprint, "dask_actor_demo", "rec_221c10cd6eea48d2b37da829704998e0")
+[2025-12-21T03:27:18Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Blueprint, "dask_actor_demo", "rec_221c10cd6eea48d2b37da829704998e0")
+Traceback (most recent call last):
+  File "/Users/jeffhykin/repos/dimos/dimos/dashboard/examples/working_minimal_dask_2_actors.py", line 143, in <module>
+    dashboard.start().result()
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/actor.py", line 314, in result
+    return sync(self._io_loop, self._result, callback_timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/utils.py", line 452, in sync
+    raise error
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/utils.py", line 426, in f
+    result = yield future
+             ^^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/tornado/gen.py", line 783, in run
+    value = future.result()
+            ^^^^^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/actor.py", line 307, in _result
+    return out.unwrap()
+           ^^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/actor.py", line 288, in unwrap
+    raise self._e
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/worker.py", line 2195, in actor_execute
+    result = await self.loop.run_in_executor(
+^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/_concurrent_futures_thread.py", line 65, in run
+    result = self.fn(*self.args, **self.kwargs)
+^^^^^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/venv/lib/python3.12/site-packages/distributed/worker.py", line 3085, in _run_actor
+    result = func(*args, **kwargs)
+^^^^^^^^^^^^^^^
+  File "/Users/jeffhykin/repos/dimos/dimos/dashboard/examples/working_minimal_dask_2_actors.py", line 60, in start
+    recording_id=rerun_info["recording_id"],
+^^^^^^^^^^^^^^^
+KeyError: 'recording_id'
+[2025-12-21T03:27:18Z DEBUG rerun_bindings::python_bridge] Shutting down the Rerun SDK
+[2025-12-21T03:27:18Z DEBUG rerun_bindings::python_bridge] Shutting down the Rerun SDK
+[2025-12-21T03:27:18Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Recording, "dask_actor_demo", "dask_actor_demo")
+[2025-12-21T03:27:18Z DEBUG re_sdk::recording_stream] Setting StoreInfo store_id=StoreId(Blueprint, "dask_actor_demo", "rec_221c10cd6eea48d2b37da829704998e0")

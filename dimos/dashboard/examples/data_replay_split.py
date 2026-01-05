@@ -36,6 +36,12 @@ from dimos.msgs.sensor_msgs import Image
 from dimos.robot.unitree_webrtc.type.lidar import LidarMessage
 
 
+class Dashboard(Module):
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore[no-untyped-def]
+        super().__init__()
+        pass
+
+
 def _iter_messages(path: str) -> Iterable:
     file_path = Path(path)
     if not file_path.exists():
@@ -134,8 +140,8 @@ class LidarReplay(Module):
                 if self._stop_event.is_set():
                     break
                 if output and output.transport:
-                    if i % 20 == 0:
-                        print(f"[LidarReplay] publishing lidar message {i}")
+                    # if i % 20 == 0:
+                    print(f"[LidarReplay] publishing lidar message {i}")
                     rc.log("/lidar", msg.to_rerun(), strict=True)
                     output.publish(msg)  # type: ignore[no-untyped-call]
                 any_sent = True
@@ -190,7 +196,7 @@ blueprint = (
             ("lidar", LidarMessage): pLCMTransport("/replay/lidar"),
         }
     )
-    .global_config(n_dask_workers=3)
+    .global_config(n_dask_workers=2, threads_per_worker=4)
 )
 
 

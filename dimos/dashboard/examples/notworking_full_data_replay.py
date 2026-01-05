@@ -163,7 +163,7 @@ blueprint = (
             ("lidar", LidarMessage): pLCMTransport("/replay/lidar"),
         }
     )
-    .global_config(n_dask_workers=2)
+    .global_config(n_dask_workers=1)
 )
 
 
