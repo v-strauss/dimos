@@ -165,6 +165,14 @@ agentic = autoconnect(
     _common_agentic,
 )
 
+agentic_detection = autoconnect(
+    detection,  # Has: nav + detectionDB_module + remappings + transports
+    spatial_memory(),
+    utilization(),
+    llm_agent(),
+    _common_agentic,
+).global_config(n_dask_workers=8)
+
 agentic_ollama = autoconnect(
     spatial,
     llm_agent(
