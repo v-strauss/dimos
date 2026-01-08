@@ -79,6 +79,3 @@ def setup_docker_env(project_dir: str | Path, features: Iterable[str]) -> dict[s
         "build_script": build_script_path,
         "exec_script": exec_script_path,
     }
-
-
-__all__ = ["DOCKERFILE_TEMPLATE", "setup_docker_env"]

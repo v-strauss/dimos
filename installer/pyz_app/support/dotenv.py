@@ -19,7 +19,7 @@ from pathlib import Path
 import re
 
 from . import prompt_tools as p
-from .constants import dimos_env_vars
+from .constants import DIMOS_ENV_VARS
 from .installer_status import installer_status
 from .misc import add_git_ignore_patterns
 
@@ -29,7 +29,7 @@ def setup_dotenv(project_path: str | Path, env_path: str | Path) -> bool:
     env_path = Path(env_path)
     template_repo = bool(installer_status.get("template_repo"))
     # add an env var to keep track of what features were enabled (so the docker template works right out of the box)
-    dimos_env_vars["DIMOS_ENABLED_FEATURES"] = ",".join(installer_status.get("features", ""))
+    DIMOS_ENV_VARS["DIMOS_ENABLED_FEATURES"] = ",".join(installer_status.get("features", ""))
 
     env_exists = env_path.is_file()
 
@@ -44,7 +44,7 @@ def setup_dotenv(project_path: str | Path, env_path: str | Path) -> bool:
             create_env = p.ask_yes_no("Can I create one for you?")
         if not create_env:
             print("- Okay, I'll assume you will manage env vars yourself:")
-            for name, value in dimos_env_vars.items():
+            for name, value in DIMOS_ENV_VARS.items():
                 print(f"  {name}={value}")
             return False
         env_path.write_text("")
@@ -62,7 +62,7 @@ def setup_dotenv(project_path: str | Path, env_path: str | Path) -> bool:
     }
 
     missing_env_vars = [
-        f"{name}={value}" for name, value in dimos_env_vars.items() if name not in existing_vars
+        f"{name}={value}" for name, value in DIMOS_ENV_VARS.items() if name not in existing_vars
     ]
 
     if missing_env_vars:

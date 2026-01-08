@@ -21,7 +21,7 @@ import time
 
 from ..support import prompt_tools as p
 from ..support.bundled_data import PROJECT_TOML
-from ..support.constants import PLACEHOLDERS
+from ..support.constants import PLACEHOLDERS, DISCORD_URL
 from ..support.dimos_banner import RenderLogo
 from ..support.direnv import setup_direnv
 from ..support.dotenv import setup_dotenv
@@ -132,15 +132,23 @@ def phase0(cli_features: list[str] | None = None) -> tuple[dict[str, object], li
     #
     # question 4: what install method?
     #
+    options = {
+        "system": "Typical system install",
+        "docker": "Docker container setup",
+        "nix": "Nix flake",
+        # "nix_venv": "Fast venv setup (nix shell)",
+    }
+    os_info = system_analysis.get("os", {})
+    native_install_supported = (os_info.get("name") == "debian_based" or os_info.get("name") == "macos")
+    if not native_install_supported:
+        del options["docker"]
+        print("NOTE: if you want a native install (on non-debian/macos/NixOS) please see the docs on the manual install method")
+        # TODO: after manual install docs are created link them here
+    
     while True:
         choice = p.pick_one(
             "Choose install method",
-            options={
-                "system": "Typical system install",
-                "docker": "Docker container setup",
-                "nix": "Nix flake",
-                # "nix_venv": "Fast venv setup (nix shell)",
-            },
+            options=options,
         )
         if choice == "system":
             # continue as normal
@@ -164,12 +172,34 @@ def phase0(cli_features: list[str] | None = None) -> tuple[dict[str, object], li
             print(
                 f"Use {p.highlight('run/docker_build')} to build the image, and {p.highlight('run/docker_exec')} to start a shell in the container."
             )
-            if p.ask_yes_no("Would you like me to build the image now?"):
-                run_command([str(paths["build_script"])], check=False)
-            if p.ask_yes_no("Would you like me to start a container shell now?"):
-                run_command([str(paths["exec_script"])], check=False)
-            p.sub_header("Docker setup complete. Exiting installer.")
-            raise SystemExit(0)
+            # build command
+            while True:
+                try:
+                    response = input(f"Please type {p.highlight("run/docker_build")} to build the image right now\npress CTRL+C to if you want to run that command yourself (e.g. later)")
+                except KeyboardInterrupt:
+                    print("exiting installer, NOTE: docker is ready whenever you're ready to build+run it")
+                    exit(0)
+                if response.strip() == "run/docker_build":
+                    run_command([str(paths["build_script"])], check=False)
+                    break
+            # run command
+            while True:
+                try:
+                    response = input(f"Please type {p.highlight("run/docker_exec")} to run the image right now\npress CTRL+C to if you want to run that command later")
+                except KeyboardInterrupt:
+                    print("exiting installer, NOTE: docker is ready whenever you're ready to run it")
+                    exit(0)
+                if response.strip() == "run/docker_exec":
+                    run_command([str(paths["exec_script"])], check=False)
+                    break
+            # run completed successfully (setup mounted venv and pip-installed dimos)
+            if Path(".dimos.ignore").exists():
+                p.sub_header("Docker setup complete! NOTE: if you try activating the venv outside of docker you're going to have a bad time (so use docker)")
+                print("Note: feel free to edit your Dockerfile as you see fit")
+                raise SystemExit(0)
+            else:
+                p.warning(f"It looks like the docker run wasn't able to completely setup dimos\nNote, every time you run {p.highlight('run/docker_exec')} it will attempt to install dimos.\nSo, if you fix the issue, try running {p.highlight('run/docker_exec')} again\n\nIn the meantime, please don't hesitate to reach out to us on discord:\n    {DISCORD_URL}")
+                raise SystemExit(3)
         if choice == "nix":
             project_dir = get_project_directory()
             example_path = setup_nix_flake(project_dir)

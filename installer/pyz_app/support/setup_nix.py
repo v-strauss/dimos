@@ -21,7 +21,7 @@ from pathlib import Path
 
 from . import prompt_tools as p
 from .bundled_data import FLAKE_TEMPLATE
-from .constants import minimum_nix_version
+from .constants import MINIMUM_NIX_VERSION
 from .installer_status import installer_status
 from .misc import is_version_at_least, parse_version
 from .shell_tooling import command_exists, run_command
@@ -60,7 +60,7 @@ def setup_nix_flake(project_dir: str | Path) -> Path | None:
         return None
 
 
-def ensure_nix_exists(min_version: str = minimum_nix_version) -> None:
+def ensure_nix_exists(min_version: str = MINIMUM_NIX_VERSION) -> None:
     """Ensure nix is installed and meets the minimum version, offering install/upgrade."""
     if not command_exists("nix"):
         p.sub_header("- nix not detected")

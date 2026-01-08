@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 from ..support import prompt_tools as p
-from ..support.constants import discord_url
+from ..support.constants import DISCORD_URL
 from ..support.shell_tooling import run_command
 
 
@@ -27,7 +27,7 @@ def phase4():
         print("")
         p.error(msg)
         p.error(
-            f"Please message us in our discord and we'll help you get it installed:\n    {discord_url}"
+            f"Please message us in our discord and we'll help you get it installed:\n    {DISCORD_URL}"
         )
         raise SystemExit(1)
 

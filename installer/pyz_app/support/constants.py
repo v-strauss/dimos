@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-discord_url = "https://discord.gg/S6E9MHsu"
+DISCORD_URL = "https://discord.gg/S6E9MHsu"
 
-minimum_nix_version = "2.24.12"
+MINIMUM_NIX_VERSION = "2.24.12"
 
-dimos_env_vars = {
+DIMOS_ENV_VARS = {
     "OPENAI_API_KEY": "",
     "HUGGINGFACE_ACCESS_TOKEN": "",
     "ALIBABA_API_KEY": "",

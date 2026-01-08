@@ -29,7 +29,7 @@ from ..support.setup_nix import nix_install
 from ..support.shell_tooling import command_exists
 
 
-def phase1(system_analysis, selected_features):
+def phase1(system_analysis, selected_features) -> str | None:
     p.header("Next Phase: System Dependency Install")
     if system_analysis is None:
         system_analysis = get_system_analysis()
@@ -97,48 +97,14 @@ def phase1(system_analysis, selected_features):
                     "Note: the install might still be okay, you'll have to determine that yourself"
                 )
     #
-    # offer nix install
+    # fallback
     #
     else:
-        try_auto_nix_install = False
-        if not is_nixos:
-            p.warning("This doesn't appear to be Debian, MacOS, or NixOS.")
-            print(
-                "While I can't install the system dependencies for you, with your native package manager,"
-            )
-            print(
-                "I can install nix (if needed) and then use nix to install the system dependencies for you."
-            )
-            try_auto_nix_install = p.ask_yes_no(
-                "Would you like me to use nix to install the system dependencies for you?"
-            )
-            # print("")
-            # print("NOTE: if you get errors such as glibc.so VERSION issues or missing symbols")
-            # print("      those are part of challenge of mixing native and nixpkgs.")
-            # print("      Online answers will LIKELY MISLEAD YOU because the real cause")
-            # print("")
-        else:
-            try_auto_nix_install = p.ask_yes_no(
-                "Install these system dependencies for you via Nix flake install?"
-            )
-
-        if try_auto_nix_install:
-            try:
-                nix_install(deps["nix_deps"])
-                tools_were_auto_installed = True
-            except Exception:
-                traceback.print_exc()
-                p.error(
-                    "Seems there was an issue installing at least one of the system dependencies"
-                )
-                p.error(
-                    "Note: the install might still be okay, you'll have to determine that yourself"
-                )
-
-        # FIXME: talk to Ivan about this -- Jeff
-        print(
-            "NOTE: you will likely need to set ENV vars (CC, LD_LIBRARY_PATH, etc) for the pip install to work"
-        )
+        p.warning("This doesn't appear to be Debian, MacOS, or NixOS.")
+        p.warning("Which means sadly I'm unable to auto-install native dependencies for you.")
+        print("HOWEVER!")
+        print("You can still do a docker or nix flake based install")
+        
 
     print()
     print()

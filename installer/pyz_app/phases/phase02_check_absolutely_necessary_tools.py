@@ -21,7 +21,7 @@ import shutil
 import traceback
 
 from ..support import prompt_tools as p
-from ..support.constants import discord_url
+from ..support.constants import DISCORD_URL
 from ..support.installer_status import installer_status
 from ..support.misc import (
     add_git_ignore_patterns,
@@ -79,7 +79,7 @@ def phase2(system_analysis, selected_features):
         print("")
         p.error("One of the vital dependencies was missing or had versioning issues")
         traceback.print_exc()
-        p.error(f"Message us in the discord if you're having trouble: {p.highlight(discord_url)}")
+        p.error(f"Message us in the discord if you're having trouble: {p.highlight(DISCORD_URL)}")
         if p.ask_yes_no(
             "It is recommended to STOP here because of the error. Should I stop here? [y=stop,n=continue]"
         ):

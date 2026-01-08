@@ -18,7 +18,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from ..support import prompt_tools as p
-from ..support.constants import discord_url
+from ..support.constants import DISCORD_URL
 from ..support.installer_status import installer_status
 from ..support.shell_tooling import command_exists, run_command
 
@@ -51,7 +51,7 @@ def phase3(selected_features: Iterable[str] | None) -> None:
     if res.code != 0:
         print("")
         p.error(
-            f"Failed to pip install dimos 😕\nPlease message us in our discord and we'll help you get it installed!:\n    {p.highlight(discord_url)}"
+            f"Failed to pip install dimos 😕\nPlease message us in our discord and we'll help you get it installed!:\n    {p.highlight(DISCORD_URL)}"
         )
         raise SystemExit(1)
 
