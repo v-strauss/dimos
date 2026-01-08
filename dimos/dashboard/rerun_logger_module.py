@@ -22,19 +22,19 @@ Strict separation:
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import rerun as rr
 
 from dimos.core import In, Module, rpc
 from dimos.core.global_config import GlobalConfig
 from dimos.dashboard.rerun_init import connect_rerun
-from dimos.utils.logging_config import setup_logger
 
-if TYPE_CHECKING:
-    from dimos.msgs.nav_msgs import OccupancyGrid
-    from dimos.msgs.sensor_msgs import PointCloud2
-    from dimos.msgs.std_msgs import Float32
+# These must be runtime imports for get_type_hints() to resolve In[...] annotations
+from dimos.msgs.nav_msgs import OccupancyGrid  # noqa: TC001
+from dimos.msgs.sensor_msgs import PointCloud2  # noqa: TC001
+from dimos.msgs.std_msgs import Float32  # noqa: TC001
+from dimos.utils.logging_config import setup_logger
 
 logger = setup_logger()
 
