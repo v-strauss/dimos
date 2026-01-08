@@ -21,7 +21,7 @@ from openpi_client import websocket_client_policy
 from xarm.wrapper import XArmAPI
 
 from dimos.core.transport import LCMTransport
-from dimos.msgs.sensor_msgs import Image
+from dimos.msgs.sensor_msgs import Image, JointState
 from dimos.msgs.sensor_msgs.image_impls.AbstractImage import ImageFormat
 from dimos.msgs.sensor_msgs import JointState, JointCommand
 
@@ -53,6 +53,7 @@ def get_camera_image(timeout: float = 5.0, topic: str = "/camera/color") -> np.n
 
     return image_data["image"]
 
+
 def get_xarm_joint_positions(timeout: float = 5.0, topic: str = "/xarm/joint_states"):
     event = threading.Event()
     joint_positions: dict[str, np.ndarray] = {}
@@ -70,6 +71,7 @@ def get_xarm_joint_positions(timeout: float = 5.0, topic: str = "/xarm/joint_sta
         raise TimeoutError(f"No joint states received on {topic} within {timeout} seconds.")
 
     return joint_positions["joint_positions"]
+
 
 def get_observation():
     return {
