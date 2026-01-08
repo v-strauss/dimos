@@ -40,7 +40,7 @@ def phase3(selected_features: Iterable[str] | None) -> None:
     if features:
         selected_features_string = f"[{','.join(features)}]"
     package_name = (
-        f"dimos{selected_features_string} @ git+https://github.com/dimensionalOS/dimos.git"
+        f"dimos{selected_features_string} @ git+ssh://git@github.com/dimensionalOS/dimos.git"
     )
     extra_args = []
     if installer_status.get("dev"):
