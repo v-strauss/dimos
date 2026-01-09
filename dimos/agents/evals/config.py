@@ -27,7 +27,7 @@ class EvalGeneratorConfig(ModuleConfig):
     """Configuration for the EvalGenerator module."""
 
     model: str = Model.GPT_4O.value
-    provider: Provider | str = field(default_factory=lambda: Provider.OPENAI)  # type: ignore[attr-defined]
+    provider: Provider = Provider.OPENAI
 
     # Generation settings
     num_evals: int = 100

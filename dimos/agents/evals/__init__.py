@@ -15,7 +15,15 @@
 """Evaluation generation module from blueprint configurations."""
 
 from dimos.agents.evals.config import EvalGeneratorConfig
+from dimos.agents.evals.generator import EvalGenerator
+from dimos.agents.evals.schema_extractor import (
+    extract_skills_from_blueprint,
+    extract_skills_from_container,
+)
 
 __all__ = [
+    "EvalGenerator",
     "EvalGeneratorConfig",
+    "extract_skills_from_blueprint",
+    "extract_skills_from_container",
 ]
