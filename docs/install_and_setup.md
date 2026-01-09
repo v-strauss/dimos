@@ -50,130 +50,138 @@ uv pip install dimos
 
 Dimos can be installed with optional features to enable additional functionality.
 
-- **visualization**:
+- ### Visualization:
+    - Add feature with: `uv pip install dimos[visualization]`
     - prerequisites:
         - common names:
             - opencv, vulkan, gtk3
         - install commands:
-            - for Ubuntu/Debian with 
-```sh
-sudo apt-get install -y libgtk-3-dev libvulkan1 libxkbcommon-x11-0 mesa-vulkan-drivers vulkan-tools
-```
+            - for Ubuntu/Debian with
+                ```sh
+                sudo apt-get install -y libgtk-3-dev libvulkan1 libxkbcommon-x11-0 mesa-vulkan-drivers vulkan-tools
+                ```
 
             - for MacOS with <detail><summary>(click to expand)</summary>
-```sh
-brew install gtk+3 molten-vk vulkan-loader
-```
-    - Add feature with: `uv pip install dimos[visualization]`
+                ```sh
+                brew install gtk+3 molten-vk vulkan-loader
+                ```
+    
 
-- **agents**:
-    - prerequisites:
-        - common names:
-            - portaudio, rust, libffi
-        - install commands:
-            - for Ubuntu/Debian with 
-```sh
-sudo apt-get install -y cargo libasound2-dev libffi-dev libstdc++6 libswresample-dev libyaml-dev make portaudio19-dev rustc
-```
-
-            - for MacOS with <detail><summary>(click to expand)</summary>
-```sh
-brew install libffi libyaml rust
-```
-    - Add feature with: `uv pip install dimos[agents]`
-
-- **web**:
-    - prerequisites:
-        - common names:
-            - ffmpeg, libuv, libsndfile
-        - install commands:
-            - for Ubuntu/Debian with 
-```sh
-sudo apt-get install -y libavdevice-dev libavfilter-dev libsndfile1 libsndfile1-dev libswresample-dev libuv1-dev
-```
-
-            - for MacOS with <detail><summary>(click to expand)</summary>
-```sh
-brew install libsndfile libuv
-```
-    - Add feature with: `uv pip install dimos[web]`
-
-- **perception**:
-    - prerequisites:
-        - common names:
-            - pillow/imagequant, harfbuzz, freetype
-        - install commands:
-            - for Ubuntu/Debian with 
-```sh
-sudo apt-get install -y cython3 libffi-dev libfreetype6-dev libfribidi-dev libharfbuzz-dev libimagequant-dev libopenjp2-7-dev libwebp-dev libxcb1-dev tcl-dev tk-dev wget
-```
-
-            - for MacOS with <detail><summary>(click to expand)</summary>
-```sh
-brew install freetype fribidi harfbuzz libffi libimagequant little-cms2 openjpeg openssl@3 tcl-tk webp wget
-```
-    - Add feature with: `uv pip install dimos[perception]`
-
-- **unitree**:
-    - prerequisites:
-        - common names:
-            - ffmpeg stack, portaudio, vulkan/gtk3
-        - install commands:
-            - for Ubuntu/Debian with 
-```sh
-sudo apt-get install -y cargo cython3 libasound2-dev libavdevice-dev libavfilter-dev libffi-dev libfreetype6-dev libfribidi-dev libgtk-3-dev libharfbuzz-dev libimagequant-dev libopenjp2-7-dev libopus-dev libsndfile1 libsndfile1-dev libsrtp2-dev libstdc++6 libswresample-dev libuv1-dev libvpx-dev libvulkan1 libwebp-dev libxcb1-dev libxkbcommon-x11-0 libyaml-dev make mesa-vulkan-drivers portaudio19-dev rustc tcl-dev tk-dev vulkan-tools wget
-```
-
-            - for MacOS with <detail><summary>(click to expand)</summary>
-```sh
-brew install freetype fribidi gtk+3 harfbuzz libffi libimagequant libsndfile libuv libvpx libyaml little-cms2 molten-vk openjpeg openssl@3 opus rust srtp tcl-tk vulkan-loader webp wget
-```
-    - Add feature with: `uv pip install dimos[unitree]`
-
-- **manipulation**:
-    - prerequisites:
-        - common names:
-            - octomap/fcl, spatialindex, glfw/gtk3
-        - install commands:
-            - for Ubuntu/Debian with 
-```sh
-sudo apt-get install -y can-utils ethtool freeglut3-dev gir1.2-gtk-3.0 libasound2 libassimp-dev libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libcairo2 libcairo2-dev libccd-dev libcups2 libdbus-1-3 libdrm2 libeigen3-dev libfcl-dev libfontconfig1-dev libfreetype6 libfreetype6-dev libgbm1 libgeos++-dev libgeos-dev libgirepository1.0-dev libglfw3 libgmp-dev libgnutls30 libgtk-3-dev libhdf5-dev libhdf5-serial-dev libidn2-0 libmpc-dev libmpfr-dev libnspr4 libnss3 liboctomap-dev libopus-dev libpango-1.0-0 libqhull-dev libsodium-dev libspatialindex-dev libspatialindex6 libtasn1-6 libunistring2 libuuid1 libvpx-dev libwebp-dev libxcb-render0-dev libxcb-shm0-dev libxcomposite1 libxdamage1 libxext-dev libxfixes3 libxft-dev libxkbcommon0 libxrandr2 libyaml-dev tcl-dev tk-dev xvfb
-```
-
-            - for MacOS with <detail><summary>(click to expand)</summary>
-```sh
-brew install assimp eigen fcl fontconfig freeglut freetype geos gmp gnutls gobject-introspection gtk+3 hdf5 libccd libidn2 libmpc libsodium libtasn1 libunistring libvpx libxft libyaml mpfr nettle octomap opus ossp-uuid pygobject3 qhull spatialindex tcl-tk webp
-```
-    - Add feature with: `uv pip install dimos[manipulation]`
-
-- **cuda**:
-    - prerequisites:
-        - common names:
-            - cuda toolkit, gtk3, hdf5
-        - install commands:
-            - for Ubuntu/Debian with 
-```sh
-sudo apt-get install -y cython3 gir1.2-gtk-3.0 libavcodec58 libavformat58 libc6 libcairo2-dev libffi-dev libfontconfig1-dev libfreetype6-dev libfribidi-dev libgirepository1.0-dev libgtk-3-dev libharfbuzz-dev libhdf5-dev libjpeg8-dev libopenjp2-7-dev libqhull-dev libstdc++6 libswscale5 libv4l-dev libwebp-dev libx11-6 libxcb-render0-dev libxcb-shm0-dev libxcb1-dev libxext-dev libxfixes3 libxft-dev libxinerama1 libxrandr2 libyaml-dev make ninja-build nvidia-cuda-toolkit tcl-dev tk-dev wget
-```
-
-            - for MacOS with <detail><summary>(click to expand)</summary>
-```sh
-brew install fontconfig freetype fribidi gobject-introspection gtk+3 harfbuzz hdf5 libffi libxft libyaml little-cms2 ninja openjpeg openssl@3 qhull tcl-tk webp wget
-```
-    - Add feature with: `uv pip install dimos[cuda]`
-
-- **sim**:
+- ### Sim:
+    - Add feature with: `uv pip install dimos[sim]`
     - prerequisites:
         - common names:
             - glfw, libxslt
         - install commands:
             - for Ubuntu/Debian with 
-```sh
-sudo apt-get install -y libglfw3 libxslt1-dev patchelf
-```
+                ```sh
+                sudo apt-get install -y libglfw3 libxslt1-dev patchelf
+                ```
 
             - for MacOS with <detail><summary>(click to expand)</summary>
-```sh
-brew install libxslt
-```
-    - Add feature with: `uv pip install dimos[sim]`
+                ```sh
+                brew install libxslt
+                ```
+    
+
+- ### Agents:
+    - Add feature with: `uv pip install dimos[agents]`
+    - prerequisites:
+        - common names:
+            - portaudio, rust, libffi
+        - install commands:
+            - for Ubuntu/Debian with 
+                ```sh
+                sudo apt-get install -y cargo libasound2-dev libffi-dev libstdc++6 libswresample-dev libyaml-dev make portaudio19-dev rustc
+                ```
+
+            - for MacOS with <detail><summary>(click to expand)</summary>
+                ```sh
+                brew install libffi libyaml rust
+                ```
+    
+
+- ### Web:
+    - Add feature with: `uv pip install dimos[web]`
+    - prerequisites:
+        - common names:
+            - ffmpeg, libuv, libsndfile
+        - install commands:
+            - for Ubuntu/Debian with 
+                ```sh
+                sudo apt-get install -y libavdevice-dev libavfilter-dev libsndfile1 libsndfile1-dev libswresample-dev libuv1-dev
+                ```
+
+            - for MacOS with <detail><summary>(click to expand)</summary>
+                ```sh
+                brew install libsndfile libuv
+                ```
+    
+
+- ### Perception:
+    - Add feature with: `uv pip install dimos[perception]`
+    - prerequisites:
+        - common names:
+            - pillow/imagequant, harfbuzz, freetype
+        - install commands:
+            - for Ubuntu/Debian with 
+                ```sh
+                sudo apt-get install -y cython3 libffi-dev libfreetype6-dev libfribidi-dev libharfbuzz-dev libimagequant-dev libopenjp2-7-dev libwebp-dev libxcb1-dev tcl-dev tk-dev wget
+                ```
+
+            - for MacOS with <detail><summary>(click to expand)</summary>
+                ```sh
+                brew install freetype fribidi harfbuzz libffi libimagequant little-cms2 openjpeg openssl@3 tcl-tk webp wget
+                ```
+    
+
+- ### Unitree:
+    - Add feature with: `uv pip install dimos[unitree]`
+    - prerequisites:
+        - common names:
+            - ffmpeg stack, portaudio, vulkan/gtk3
+        - install commands:
+            - for Ubuntu/Debian with 
+                ```sh
+                sudo apt-get install -y cargo cython3 libasound2-dev libavdevice-dev libavfilter-dev libffi-dev libfreetype6-dev libfribidi-dev libgtk-3-dev libharfbuzz-dev libimagequant-dev libopenjp2-7-dev libopus-dev libsndfile1 libsndfile1-dev libsrtp2-dev libstdc++6 libswresample-dev libuv1-dev libvpx-dev libvulkan1 libwebp-dev libxcb1-dev libxkbcommon-x11-0 libyaml-dev make mesa-vulkan-drivers portaudio19-dev rustc tcl-dev tk-dev vulkan-tools wget
+                ```
+
+            - for MacOS with <detail><summary>(click to expand)</summary>
+                ```sh
+                brew install freetype fribidi gtk+3 harfbuzz libffi libimagequant libsndfile libuv libvpx libyaml little-cms2 molten-vk openjpeg openssl@3 opus rust srtp tcl-tk vulkan-loader webp wget
+                ```
+    
+
+- ### Manipulation:
+    - Add feature with: `uv pip install dimos[manipulation]`
+    - prerequisites:
+        - common names:
+            - octomap/fcl, spatialindex, glfw/gtk3
+        - install commands:
+            - for Ubuntu/Debian with 
+                ```sh
+                sudo apt-get install -y can-utils ethtool freeglut3-dev gir1.2-gtk-3.0 libasound2 libassimp-dev libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 libcairo2 libcairo2-dev libccd-dev libcups2 libdbus-1-3 libdrm2 libeigen3-dev libfcl-dev libfontconfig1-dev libfreetype6 libfreetype6-dev libgbm1 libgeos++-dev libgeos-dev libgirepository1.0-dev libglfw3 libgmp-dev libgnutls30 libgtk-3-dev libhdf5-dev libhdf5-serial-dev libidn2-0 libmpc-dev libmpfr-dev libnspr4 libnss3 liboctomap-dev libopus-dev libpango-1.0-0 libqhull-dev libsodium-dev libspatialindex-dev libspatialindex6 libtasn1-6 libunistring2 libuuid1 libvpx-dev libwebp-dev libxcb-render0-dev libxcb-shm0-dev libxcomposite1 libxdamage1 libxext-dev libxfixes3 libxft-dev libxkbcommon0 libxrandr2 libyaml-dev tcl-dev tk-dev xvfb
+                ```
+
+            - for MacOS with <detail><summary>(click to expand)</summary>
+                ```sh
+                brew install assimp eigen fcl fontconfig freeglut freetype geos gmp gnutls gobject-introspection gtk+3 hdf5 libccd libidn2 libmpc libsodium libtasn1 libunistring libvpx libxft libyaml mpfr nettle octomap opus ossp-uuid pygobject3 qhull spatialindex tcl-tk webp
+                ```
+    
+
+- ### Cuda:
+    - Add feature with: `uv pip install dimos[cuda]`
+    - prerequisites:
+        - common names:
+            - cuda toolkit, gtk3, hdf5
+        - install commands:
+            - for Ubuntu/Debian with 
+                ```sh
+                sudo apt-get install -y cython3 gir1.2-gtk-3.0 libavcodec58 libavformat58 libc6 libcairo2-dev libffi-dev libfontconfig1-dev libfreetype6-dev libfribidi-dev libgirepository1.0-dev libgtk-3-dev libharfbuzz-dev libhdf5-dev libjpeg8-dev libopenjp2-7-dev libqhull-dev libstdc++6 libswscale5 libv4l-dev libwebp-dev libx11-6 libxcb-render0-dev libxcb-shm0-dev libxcb1-dev libxext-dev libxfixes3 libxft-dev libxinerama1 libxrandr2 libyaml-dev make ninja-build nvidia-cuda-toolkit tcl-dev tk-dev wget
+                ```
+
+            - for MacOS with <detail><summary>(click to expand)</summary>
+                ```sh
+                brew install fontconfig freetype fribidi gobject-introspection gtk+3 harfbuzz hdf5 libffi libxft libyaml little-cms2 ninja openjpeg openssl@3 qhull tcl-tk webp wget
+                ```
+    
