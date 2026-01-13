@@ -69,34 +69,25 @@ class MujocoSimBridgeBase(ABC):
         self._num_joints = num_joints
         self._control_frequency = control_frequency
 
-        # Load MuJoCo model
         self._model = load_robot_description(robot_description)
         self._data = mujoco.MjData(self._model)
 
-        # --- State variables --- #
         self._connected: bool = False
 
-        # --- Threading infrastructure --- #
         self._lock = threading.Lock()
         self._stop_event = threading.Event()
         self._sim_thread: threading.Thread | None = None
 
-        # --- Joint state (in radians, MuJoCo's native unit) --- #
         self._joint_positions = [0.0] * self._num_joints
         self._joint_velocities = [0.0] * self._num_joints
         self._joint_efforts = [0.0] * self._num_joints
 
-        # --- Joint targets (in radians) --- #
         self._joint_position_targets = [0.0] * self._num_joints
 
-        # Initialize position targets to current joint positions at startup
-        # This prevents the arm from moving to zero when motion is first enabled
         for i in range(min(self._num_joints, self._model.nq)):
             current_pos = float(self._data.qpos[i])
             self._joint_position_targets[i] = current_pos
             self._joint_positions[i] = current_pos
-
-    # ============= Abstract Methods (must be implemented by subclasses) =============
 
     @abstractmethod
     def _apply_control(self) -> None:
@@ -122,8 +113,6 @@ class MujocoSimBridgeBase(ABC):
         """
         pass
 
-    # ============= Connection Management =============
-
     def connect(self) -> None:
         """Connect to simulation and start the simulation loop."""
         logger.info(f"{self.__class__.__name__}: connect()")
@@ -131,7 +120,6 @@ class MujocoSimBridgeBase(ABC):
             self._connected = True
             self._stop_event.clear()
 
-        # Start simulation thread
         if self._sim_thread is None or not self._sim_thread.is_alive():
             self._sim_thread = threading.Thread(
                 target=self._sim_loop,
@@ -150,8 +138,6 @@ class MujocoSimBridgeBase(ABC):
         if self._sim_thread and self._sim_thread.is_alive():
             self._sim_thread.join(timeout=2.0)
         self._sim_thread = None
-
-    # ============= Simulation Loop =============
 
     def _sim_loop(self) -> None:
         """
@@ -173,25 +159,19 @@ class MujocoSimBridgeBase(ABC):
             while m_viewer.is_running() and not self._stop_event.is_set():
                 loop_start = time.time()
 
-                # Apply control (subclass implements this)
                 self._apply_control()
 
-                # Step simulation
                 mujoco.mj_step(self._model, self._data)
                 m_viewer.sync()
 
-                # Update joint state (subclass implements this)
                 self._update_joint_state()
 
-                # Maintain accurate control frequency by accounting for execution time
                 elapsed = time.time() - loop_start
                 sleep_time = dt - elapsed
                 if sleep_time > 0:
                     time.sleep(sleep_time)
 
         logger.info(f"{self.__class__.__name__}: sim loop stopped")
-
-    # ============= Properties =============
 
     @property
     def connected(self) -> bool:
@@ -232,10 +212,8 @@ class MujocoSimBridgeBase(ABC):
         with self._lock:
             return list(self._joint_efforts)
 
-    # ============= Helper Methods =============
-
     def hold_current_position(self) -> None:
-        """Lock joints at their current positions (useful for emergency stop, enable, etc.)."""
+        """Lock joints at their current positions."""
         with self._lock:
             for i in range(min(self._num_joints, self._model.nq)):
                 current_pos = float(self._data.qpos[i])
