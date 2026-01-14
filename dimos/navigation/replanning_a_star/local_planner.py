@@ -87,7 +87,6 @@ class LocalPlanner(Resource):
         self._navigation_map = navigation_map
         self._goal_tolerance = goal_tolerance
 
-
         self._controller = PController(
             self._global_config,
             self._speed,
