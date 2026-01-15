@@ -14,18 +14,24 @@
 
 from dimos.core.blueprints import autoconnect
 from dimos.core.transport import LCMTransport
+from dimos.manipulation.control.trajectory_controller.joint_trajectory_controller import (
+    joint_trajectory_controller,
+)
 from dimos.msgs.sensor_msgs import (  # type: ignore[attr-defined]
     JointCommand,
     JointState,
     RobotState,
 )
 from dimos.msgs.trajectory_msgs import JointTrajectory
-from dimos.simulation.manipulators.simulation import simulation
+from dimos.simulation.manipulators.sim_driver import simulation
 
-xarm7_trajectory_sim = simulation(
-    robot="xarm7_mj_description",
-    config_path=None,
-    headless=False,
+xarm7_trajectory_sim = autoconnect(
+    simulation(
+        robot="xarm7_mj_description",
+        config_path=None,
+        headless=False,
+    ),
+    joint_trajectory_controller(control_frequency=100.0),
 ).transports(
     {
         ("joint_state", JointState): LCMTransport("/xarm/joint_states", JointState),
