@@ -181,7 +181,9 @@ class PiController(PController):
 
         # Accumulate integral error with anti-windup clamping
         self._integral_error += yaw_error * dt
-        self._integral_error = np.clip(self._integral_error, -self._integral_limit, self._integral_limit)
+        self._integral_error = np.clip(
+            self._integral_error, -self._integral_limit, self._integral_limit
+        )
 
         # PI control: proportional + integral
         angular_velocity = self._k_angular * yaw_error + self._k_integral * self._integral_error
