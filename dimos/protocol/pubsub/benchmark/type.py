@@ -83,17 +83,17 @@ class BenchmarkResult:
 
     @property
     def total_time(self) -> float:
-        """Total time including drain."""
+        """Total time including latency."""
         return self.duration + self.receive_time
 
     @property
     def throughput_msgs(self) -> float:
-        """Messages per second (including drain time)."""
+        """Messages per second (including latency)."""
         return self.msgs_received / self.total_time if self.total_time > 0 else 0
 
     @property
     def throughput_bytes(self) -> float:
-        """Bytes per second (including drain time)."""
+        """Bytes per second (including latency)."""
         return (
             (self.msgs_received * self.msg_size_bytes) / self.total_time
             if self.total_time > 0
@@ -129,7 +129,7 @@ class BenchmarkResults:
         table.add_column("Recv", justify="right")
         table.add_column("Msgs/s", justify="right", style="green")
         table.add_column("Throughput", justify="right", style="green")
-        table.add_column("Drain", justify="right")
+        table.add_column("Latency", justify="right")
         table.add_column("Loss", justify="right")
 
         for r in sorted(self.results, key=lambda x: (x.transport, x.msg_size_bytes)):
@@ -148,3 +148,130 @@ class BenchmarkResults:
 
         console.print()
         console.print(table)
+
+    def _print_heatmap(
+        self,
+        title: str,
+        value_fn: Callable[[BenchmarkResult], float],
+        format_fn: Callable[[float], str],
+        high_is_good: bool = True,
+    ) -> None:
+        """Generic heatmap printer."""
+        if not self.results:
+            return
+
+        def size_id(size: int) -> str:
+            if size >= 1048576:
+                return f"{size // 1048576}MB"
+            if size >= 1024:
+                return f"{size // 1024}KB"
+            return f"{size}B"
+
+        transports = sorted(set(r.transport for r in self.results))
+        sizes = sorted(set(r.msg_size_bytes for r in self.results))
+
+        # Build matrix
+        matrix: list[list[float]] = []
+        for transport in transports:
+            row = []
+            for size in sizes:
+                result = next(
+                    (
+                        r
+                        for r in self.results
+                        if r.transport == transport and r.msg_size_bytes == size
+                    ),
+                    None,
+                )
+                row.append(value_fn(result) if result else 0)
+            matrix.append(row)
+
+        all_vals = [v for row in matrix for v in row if v > 0]
+        if not all_vals:
+            return
+        min_val, max_val = min(all_vals), max(all_vals)
+
+        # ANSI 256 gradient: red -> orange -> yellow -> green
+        gradient = [
+            52,
+            88,
+            124,
+            160,
+            196,
+            202,
+            208,
+            214,
+            220,
+            226,
+            190,
+            154,
+            148,
+            118,
+            82,
+            46,
+            40,
+            34,
+        ]
+        if not high_is_good:
+            gradient = gradient[::-1]
+
+        def val_to_color(v: float) -> int:
+            if v <= 0 or max_val == min_val:
+                return 236
+            t = (v - min_val) / (max_val - min_val)
+            return gradient[int(t * (len(gradient) - 1))]
+
+        reset = "\033[0m"
+        size_labels = [size_id(s) for s in sizes]
+        col_w = max(8, max(len(s) for s in size_labels) + 1)
+        transport_w = max(len(t) for t in transports) + 1
+
+        print()
+        print(f"{title:^{transport_w + col_w * len(sizes)}}")
+        print()
+        print(" " * transport_w + "".join(f"{s:^{col_w}}" for s in size_labels))
+
+        # Dark colors that need white text (dark reds)
+        dark_colors = {52, 88, 124, 160, 236}
+
+        for i, transport in enumerate(transports):
+            row_str = f"{transport:<{transport_w}}"
+            for val in matrix[i]:
+                color = val_to_color(val)
+                fg = 255 if color in dark_colors else 16  # white on dark, black on bright
+                cell = format_fn(val) if val > 0 else "-"
+                row_str += f"\033[48;5;{color}m\033[38;5;{fg}m{cell:^{col_w}}{reset}"
+            print(row_str)
+        print()
+
+    def print_heatmap(self) -> None:
+        """Print msgs/sec heatmap."""
+
+        def fmt(v: float) -> str:
+            return f"{v / 1000:.1f}k" if v >= 1000 else f"{v:.0f}"
+
+        self._print_heatmap("Msgs/sec", lambda r: r.throughput_msgs, fmt)
+
+    def print_bandwidth_heatmap(self) -> None:
+        """Print bandwidth heatmap."""
+
+        def fmt(v: float) -> str:
+            if v >= 1e9:
+                return f"{v / 1e9:.1f}G"
+            if v >= 1e6:
+                return f"{v / 1e6:.0f}M"
+            if v >= 1e3:
+                return f"{v / 1e3:.0f}K"
+            return f"{v:.0f}"
+
+        self._print_heatmap("Bandwidth", lambda r: r.throughput_bytes, fmt)
+
+    def print_latency_heatmap(self) -> None:
+        """Print latency heatmap (time waiting for messages after publishing)."""
+
+        def fmt(v: float) -> str:
+            if v >= 1:
+                return f"{v:.1f}s"
+            return f"{v * 1000:.0f}ms"
+
+        self._print_heatmap("Latency", lambda r: r.receive_time, fmt, high_is_good=False)
