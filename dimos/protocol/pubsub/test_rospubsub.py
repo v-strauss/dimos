@@ -21,6 +21,7 @@ import numpy as np
 import pytest
 
 from dimos.msgs.geometry_msgs.PoseStamped import PoseStamped
+from dimos.msgs.geometry_msgs.Twist import Twist
 from dimos.msgs.geometry_msgs.Vector3 import Vector3
 from dimos.msgs.sensor_msgs.PointCloud2 import PointCloud2
 from dimos.protocol.pubsub.rospubsub import DimosROS, ROSTopic
@@ -244,3 +245,43 @@ def test_pointstamped_pubsub(publisher, subscriber):
     assert converted.point.x == original.point.x
     assert converted.point.y == original.point.y
     assert converted.point.z == original.point.z
+
+
+@pytest.mark.ros
+def test_twist_pubsub(publisher, subscriber):
+    """Test Twist publish/subscribe through ROS.
+
+    dimos.msgs type with nested Vector3 messages (linear, angular).
+    Tests recursive field copy with custom dimos.msgs nested types.
+    """
+    original = Twist(
+        linear=[1.0, 2.0, 3.0],
+        angular=[0.1, 0.2, 0.3],
+    )
+
+    topic = ROSTopic("/test_twist", Twist)
+
+    received = []
+    event = threading.Event()
+
+    def callback(msg, t):
+        received.append(msg)
+        event.set()
+
+    subscriber.subscribe(topic, callback)
+    publisher.publish(topic, original)
+
+    assert event.wait(timeout=2.0), "No Twist message received"
+    assert len(received) == 1
+
+    converted = received[0]
+
+    # Verify linear velocity preserved
+    assert converted.linear.x == original.linear.x
+    assert converted.linear.y == original.linear.y
+    assert converted.linear.z == original.linear.z
+
+    # Verify angular velocity preserved
+    assert converted.angular.x == original.angular.x
+    assert converted.angular.y == original.angular.y
+    assert converted.angular.z == original.angular.z
