@@ -151,6 +151,15 @@ def lcmspy(ctx: typer.Context) -> None:
 
 
 @main.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def ddsspy(ctx: typer.Context) -> None:
+    """DDS spy tool for monitoring DDS discovery and traffic."""
+    from dimos.utils.cli.ddsspy.run_ddsspy import main as ddsspy_main
+
+    sys.argv = ["ddsspy", *ctx.args]
+    ddsspy_main()
+
+
+@main.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def skillspy(ctx: typer.Context) -> None:
     """Skills spy tool for monitoring skills."""
     from dimos.utils.cli.skillspy.skillspy import main as skillspy_main
