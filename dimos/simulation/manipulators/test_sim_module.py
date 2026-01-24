@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from pathlib import Path
 import threading
-import time
 
 import pytest
 
@@ -64,24 +64,38 @@ class _FakeBackend:
 
 
 def _run_single_monitor_iteration(module: SimulationModule, monkeypatch) -> None:  # type: ignore[no-untyped-def]
-    def _sleep_once(_: float) -> None:
+    def _wait_once(_: float) -> bool:
         module._stop_event.set()
         raise StopIteration
 
-    monkeypatch.setattr(time, "sleep", _sleep_once)
+    monkeypatch.setattr(module._stop_event, "wait", _wait_once)
     with pytest.raises(StopIteration):
         module._monitor_loop()
 
 
+def _run_single_control_iteration(module: SimulationModule, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    def _wait_once(_: float) -> bool:
+        module._stop_event.set()
+        raise StopIteration
+
+    monkeypatch.setattr(module._stop_event, "wait", _wait_once)
+    with pytest.raises(StopIteration):
+        module._control_loop()
+
+
 def test_simulation_module_publishes_joint_state(monkeypatch) -> None:
-    module = SimulationModule(rpc_transport=_DummyRPC)
+    module = SimulationModule(
+        engine="mujoco",
+        config_path=Path("."),
+        rpc_transport=_DummyRPC,
+    )
     module._backend = _FakeBackend()  # type: ignore[assignment]
     module._stop_event = threading.Event()
 
     joint_states: list[object] = []
     module.joint_state.subscribe(joint_states.append)
     try:
-        _run_single_monitor_iteration(module, monkeypatch)
+        _run_single_control_iteration(module, monkeypatch)
     finally:
         module.stop()
 
@@ -90,7 +104,11 @@ def test_simulation_module_publishes_joint_state(monkeypatch) -> None:
 
 
 def test_simulation_module_publishes_robot_state(monkeypatch) -> None:
-    module = SimulationModule(rpc_transport=_DummyRPC)
+    module = SimulationModule(
+        engine="mujoco",
+        config_path=Path("."),
+        rpc_transport=_DummyRPC,
+    )
     module._backend = _FakeBackend()  # type: ignore[assignment]
     module._stop_event = threading.Event()
 
