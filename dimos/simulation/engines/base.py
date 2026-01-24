@@ -17,6 +17,10 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from dimos.msgs.sensor_msgs import JointState
 
 
 class SimulationEngine(ABC):
@@ -70,9 +74,5 @@ class SimulationEngine(ABC):
         """Read joint efforts in Nm."""
 
     @abstractmethod
-    def write_joint_positions(self, positions: list[float]) -> None:
-        """Command joint positions in radians."""
-
-    @abstractmethod
-    def write_joint_velocities(self, velocities: list[float]) -> None:
-        """Command joint velocities in rad/s."""
+    def write_joint_command(self, command: JointState) -> None:
+        """Command joints using a JointState message."""

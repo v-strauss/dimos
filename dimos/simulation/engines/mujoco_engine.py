@@ -19,6 +19,7 @@ from __future__ import annotations
 from pathlib import Path
 import threading
 import time
+from typing import TYPE_CHECKING
 
 import mujoco
 import mujoco.viewer as viewer  # type: ignore[import-untyped]
@@ -26,6 +27,9 @@ import mujoco.viewer as viewer  # type: ignore[import-untyped]
 from dimos.simulation.engines.base import SimulationEngine
 from dimos.simulation.utils.xml_parser import JointMapping, build_joint_mappings
 from dimos.utils.logging_config import setup_logger
+
+if TYPE_CHECKING:
+    from dimos.msgs.sensor_msgs import JointState
 
 logger = setup_logger()
 
@@ -63,6 +67,9 @@ class MujocoEngine(SimulationEngine):
         self._joint_efforts = [0.0] * self._num_joints
 
         self._joint_position_targets = [0.0] * self._num_joints
+        self._joint_velocity_targets = [0.0] * self._num_joints
+        self._joint_effort_targets = [0.0] * self._num_joints
+        self._command_mode = "position"
         for i, mapping in enumerate(self._joint_mappings):
             current_pos = self._current_position(mapping)
             self._joint_position_targets[i] = current_pos
@@ -91,13 +98,18 @@ class MujocoEngine(SimulationEngine):
 
     def _apply_control(self) -> None:
         with self._lock:
-            pos_targets = list(self._joint_position_targets)
+            if self._command_mode == "effort":
+                targets = list(self._joint_effort_targets)
+            elif self._command_mode == "velocity":
+                targets = list(self._joint_velocity_targets)
+            elif self._command_mode == "position":
+                targets = list(self._joint_position_targets)
         with self._lock:
             for i, mapping in enumerate(self._joint_mappings):
                 if mapping.actuator_id is None:
                     continue
-                if i < len(pos_targets):
-                    self._data.ctrl[mapping.actuator_id] = pos_targets[i]
+                if i < len(targets):
+                    self._data.ctrl[mapping.actuator_id] = targets[i]
 
     def _update_joint_state(self) -> None:
         with self._lock:
@@ -235,23 +247,41 @@ class MujocoEngine(SimulationEngine):
     def read_joint_efforts(self) -> list[float]:
         return self.joint_efforts
 
-    def write_joint_positions(self, positions: list[float]) -> None:
+    def write_joint_command(self, command: JointState) -> None:
+        if command.position:
+            self._command_mode = "position"
+            self._set_position_targets(command.position)
+            return
+        if command.velocity:
+            self._command_mode = "velocity"
+            self._set_velocity_targets(command.velocity)
+            return
+        if command.effort:
+            self._command_mode = "effort"
+            self._set_effort_targets(command.effort)
+            return
+
+    def _set_position_targets(self, positions: list[float]) -> None:
         with self._lock:
             limit = min(len(positions), self._num_joints)
             for i in range(limit):
                 self._joint_position_targets[i] = float(positions[i])
 
-    def write_joint_velocities(self, velocities: list[float]) -> None:
-        dt = 1.0 / self._control_frequency
+    def _set_velocity_targets(self, velocities: list[float]) -> None:
         with self._lock:
             limit = min(len(velocities), self._num_joints)
             for i in range(limit):
-                self._joint_position_targets[i] = (
-                    self._joint_positions[i] + float(velocities[i]) * dt
-                )
+                self._joint_velocity_targets[i] = float(velocities[i])
+
+    def _set_effort_targets(self, efforts: list[float]) -> None:
+        with self._lock:
+            limit = min(len(efforts), self._num_joints)
+            for i in range(limit):
+                self._joint_effort_targets[i] = float(efforts[i])
 
     def hold_current_position(self) -> None:
         with self._lock:
+            self._command_mode = "position"
             for i, mapping in enumerate(self._joint_mappings):
                 self._joint_position_targets[i] = self._current_position(mapping)
 
