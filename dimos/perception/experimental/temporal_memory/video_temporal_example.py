@@ -26,11 +26,13 @@ from pathlib import Path
 import sys
 import threading
 import time
+from typing import Any
 
 import cv2
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 import numpy as np
+from numpy.typing import NDArray
 
 from dimos import core
 from dimos.core import Module, Out, rpc
@@ -48,7 +50,7 @@ _temporal_memory_ref = None
 
 
 @app.route("/api/query", methods=["POST"])
-def query_endpoint():
+def query_endpoint() -> Any:
     """Query endpoint for the running TemporalMemory."""
     global _temporal_memory_ref
     if _temporal_memory_ref is None:
@@ -65,7 +67,7 @@ def query_endpoint():
         return jsonify({"error": str(e)}), 500
 
 
-def start_query_server():
+def start_query_server() -> None:
     """Start Flask server in background thread."""
     app.run(host="127.0.0.1", port=8081, debug=False, threaded=True)
 
@@ -80,13 +82,18 @@ class VideoFileModule(Module):
 
     @rpc
     def start(self) -> None:
-        def on_frame(frame: np.ndarray) -> None:
+        def on_frame(frame: NDArray[Any]) -> None:
             img = Image.from_numpy(frame, format=ImageFormat.BGR)
             self.color_image.publish(img)
 
         self._disposables.add(
             self.video_provider.capture_video_as_observable(realtime=True).subscribe(on_frame)
         )
+
+    @rpc
+    def stop(self) -> None:
+        """Stop the video provider."""
+        super().stop()
 
 
 def example_usage() -> None:

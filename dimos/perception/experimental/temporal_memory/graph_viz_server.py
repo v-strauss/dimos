@@ -26,6 +26,7 @@ from pathlib import Path
 import sys
 from threading import Lock
 import time
+from typing import Any
 
 from flask import Flask, jsonify, render_template_string
 
@@ -568,7 +569,7 @@ HTML_TEMPLATE = """
 
 
 @app.route("/")
-def index():
+def index() -> str:
     return render_template_string(HTML_TEMPLATE)
 
 
@@ -592,7 +593,7 @@ def _try_init_db() -> bool:
 
 
 @app.route("/api/graph")
-def get_graph():
+def get_graph() -> Any:
     """Get current graph state."""
     global _last_update
 
