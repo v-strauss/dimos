@@ -14,8 +14,7 @@
 
 from concurrent.futures import ThreadPoolExecutor
 import time
-
-from traitlets import Any
+from typing import Any
 
 from dimos import core
 from dimos.core import DimosCluster
