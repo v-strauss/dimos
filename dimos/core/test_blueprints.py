@@ -109,7 +109,7 @@ def test_get_connection_set() -> None:
             StreamRef(name="pet_cat", type=Petting, direction="in"),
             StreamRef(name="scratches", type=Scratch, direction="out"),
         ),
-        args=("arg1"),
+        args=("arg1",),
         kwargs={"k": "v"},
     )
 
