@@ -16,6 +16,9 @@
 # Run `pytest dimos/robot/test_all_blueprints_generation.py` to regenerate.
 
 all_blueprints = {
+    "agentic": "dimos.robot.unitree_webrtc.unitree_g1_blueprints:agentic",
+    "agentic-sim": "dimos.robot.unitree_webrtc.unitree_g1_blueprints:agentic_sim",
+    "basic-sim": "dimos.robot.unitree_webrtc.unitree_g1_blueprints:basic_sim",
     "coordinator-basic": "dimos.control.blueprints:coordinator_basic",
     "coordinator-dual-mock": "dimos.control.blueprints:coordinator_dual_mock",
     "coordinator-dual-xarm": "dimos.control.blueprints:coordinator_dual_xarm",
@@ -32,6 +35,11 @@ all_blueprints = {
     "demo-object-scene-registration": "dimos.perception.demo_object_scene_registration:demo_object_scene_registration",
     "demo-osm": "dimos.mapping.osm.demo_osm:demo_osm",
     "demo-skill": "dimos.agents.skills.demo_skill:demo_skill",
+    "detection": "dimos.robot.unitree_webrtc.unitree_g1_blueprints:detection",
+    "full-featured": "dimos.robot.unitree_webrtc.unitree_g1_blueprints:full_featured",
+    "standard": "dimos.robot.unitree_webrtc.unitree_g1_blueprints:standard",
+    "standard-sim": "dimos.robot.unitree_webrtc.unitree_g1_blueprints:standard_sim",
+    "standard-with-shm": "dimos.robot.unitree_webrtc.unitree_g1_blueprints:standard_with_shm",
     "unitree-g1": "dimos.robot.unitree_webrtc.unitree_g1_blueprints:unitree_g1",
     "unitree-g1-agentic": "dimos.robot.unitree_webrtc.unitree_g1_blueprints:unitree_g1_agentic",
     "unitree-g1-agentic-sim": "dimos.robot.unitree_webrtc.unitree_g1_blueprints:unitree_g1_agentic_sim",
@@ -53,6 +61,7 @@ all_blueprints = {
     "unitree-go2-spatial": "dimos.robot.unitree_webrtc.unitree_go2_blueprints:unitree_go2_spatial",
     "unitree-go2-temporal-memory": "dimos.robot.unitree_webrtc.unitree_go2_blueprints:unitree_go2_temporal_memory",
     "unitree-go2-vlm-stream-test": "dimos.robot.unitree_webrtc.unitree_go2_blueprints:unitree_go2_vlm_stream_test",
+    "with-joystick": "dimos.robot.unitree_webrtc.unitree_g1_blueprints:with_joystick",
 }
 
 
