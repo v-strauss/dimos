@@ -28,6 +28,7 @@ from typing import (
 
 if TYPE_CHECKING:
     from dimos.core.introspection.module import ModuleInfo
+    from dimos.core.rpc_client import RPCClient
 
 from dask.distributed import Actor, get_worker
 from reactivex.disposable import CompositeDisposable
@@ -37,7 +38,7 @@ from dimos.core import colors
 from dimos.core.core import T, rpc
 from dimos.core.introspection.module import extract_module_info, render_module_io
 from dimos.core.resource import Resource
-from dimos.core.rpc_client import RpcCall
+from dimos.core.rpc_client import RPCClient
 from dimos.core.stream import In, Out, RemoteIn, RemoteOut, Transport
 from dimos.protocol.rpc import LCMRPC, RPCSpec
 from dimos.protocol.service import Configurable  # type: ignore[attr-defined]
@@ -326,9 +327,9 @@ class ModuleBase(Configurable[ModuleConfigT], SkillContainer, Resource):
     @classproperty
     def blueprint(self):  # type: ignore[no-untyped-def]
         # Here to prevent circular imports.
-        from dimos.core.blueprints import Blueprint
+        from dimos.core.blueprints import ModuleBlueprintSet
 
-        return partial(Blueprint.create, self)  # type: ignore[arg-type]
+        return partial(ModuleBlueprintSet.create, self)  # type: ignore[arg-type]
 
     @rpc
     def get_rpc_method_names(self) -> list[str]:
@@ -340,7 +341,7 @@ class ModuleBase(Configurable[ModuleConfigT], SkillContainer, Resource):
         self._bound_rpc_calls[method] = callable
 
     @rpc
-    def set_module_ref(self, name: str, module_ref: Any) -> None:
+    def set_module_ref(self, name: str, module_ref: RPCClient) -> None:
         setattr(self, name, module_ref)
 
     @overload

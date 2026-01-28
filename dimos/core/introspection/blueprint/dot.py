@@ -24,7 +24,7 @@ when one output fans out to multiple consumers:
 from collections import defaultdict
 from enum import Enum, auto
 
-from dimos.core.blueprints import Blueprint
+from dimos.core.blueprints import ModuleBlueprintSet
 from dimos.core.introspection.utils import (
     GROUP_COLORS,
     TYPE_COLORS,
@@ -54,13 +54,13 @@ DEFAULT_IGNORED_MODULES = {
 
 
 def render(
-    blueprint_set: Blueprint,
+    blueprint_set: ModuleBlueprintSet,
     *,
     layout: set[LayoutAlgo] | None = None,
     ignored_connections: set[tuple[str, str]] | None = None,
     ignored_modules: set[str] | None = None,
 ) -> str:
-    """Generate a hub-style DOT graph from a Blueprint.
+    """Generate a hub-style DOT graph from a ModuleBlueprintSet.
 
     This creates intermediate "type nodes" that represent data channels,
     connecting producers to consumers through a central hub node.
@@ -224,12 +224,12 @@ def render(
 
 
 def render_svg(
-    blueprint_set: Blueprint,
+    blueprint_set: ModuleBlueprintSet,
     output_path: str,
     *,
     layout: set[LayoutAlgo] | None = None,
 ) -> None:
-    """Generate an SVG file from a Blueprint using graphviz.
+    """Generate an SVG file from a ModuleBlueprintSet using graphviz.
 
     Args:
         blueprint_set: The blueprint set to visualize.
