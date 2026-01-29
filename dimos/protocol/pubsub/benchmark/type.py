@@ -41,6 +41,21 @@ class Case(Generic[TopicT, MsgT]):
 TestData = Sequence[Case[Any, Any]]
 
 
+def _format_mib(value: float) -> str:
+    """Format bytes as MiB with intelligent rounding.
+
+    >= 10 MiB: integer (e.g., "42")
+    1-10 MiB: 1 decimal (e.g., "2.5")
+    < 1 MiB: 2 decimals (e.g., "0.07")
+    """
+    mib = value / (1024**2)
+    if mib >= 10:
+        return f"{mib:.0f}"
+    if mib >= 1:
+        return f"{mib:.1f}"
+    return f"{mib:.2f}"
+
+
 def _format_iec(value: float, concise: bool = False, decimals: int = 2) -> str:
     """Format bytes with IEC units (Ki/Mi/Gi = 1024^1/2/3)"""
     k = 1024.0
@@ -109,7 +124,7 @@ class BenchmarkResults:
         table.add_column("Sent", justify="right")
         table.add_column("Recv", justify="right")
         table.add_column("Msgs/s", justify="right", style="green")
-        table.add_column("Throughput", justify="right", style="green")
+        table.add_column("MiB/s", justify="right", style="green")
         table.add_column("Latency", justify="right")
         table.add_column("Loss", justify="right")
 
@@ -118,11 +133,11 @@ class BenchmarkResults:
             recv_style = "yellow" if r.receive_time > 0.1 else "dim"
             table.add_row(
                 r.transport,
-                _format_iec(r.msg_size_bytes, decimals=1),
+                _format_iec(r.msg_size_bytes, decimals=0),
                 f"{r.msgs_sent:,}",
                 f"{r.msgs_received:,}",
                 f"{r.throughput_msgs:,.0f}",
-                f"{_format_iec(r.throughput_bytes)}/s",
+                _format_mib(r.throughput_bytes),
                 f"[{recv_style}]{r.receive_time * 1000:.0f}ms[/{recv_style}]",
                 f"[{loss_style}]{r.loss_pct:.1f}%[/{loss_style}]",
             )
