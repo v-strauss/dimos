@@ -37,6 +37,11 @@ all_blueprints = {
     "demo-osm": "dimos.mapping.osm.demo_osm:demo_osm",
     "demo-skill": "dimos.agents.skills.demo_skill:demo_skill",
     "dual-xarm6-planner": "dimos.manipulation.manipulation_blueprints:dual_xarm6_planner",
+    "piper-manipulation": "dimos.robot.piper.blueprints:piper_manipulation",
+    "piper-manipulation-mock": "dimos.robot.piper.blueprints:piper_manipulation_mock",
+    "piper-teleop": "dimos.robot.piper.blueprints:piper_teleop",
+    "piper-teleop-mock": "dimos.robot.piper.blueprints:piper_teleop_mock",
+    "piper-velocity": "dimos.robot.piper.blueprints:piper_velocity",
     "unitree-g1": "dimos.robot.unitree_webrtc.unitree_g1_blueprints:unitree_g1",
     "unitree-g1-agentic": "dimos.robot.unitree_webrtc.unitree_g1_blueprints:unitree_g1_agentic",
     "unitree-g1-agentic-sim": "dimos.robot.unitree_webrtc.unitree_g1_blueprints:unitree_g1_agentic_sim",
@@ -65,6 +70,7 @@ all_blueprints = {
 
 all_modules = {
     "camera_module": "dimos.hardware.sensors.camera.module",
+    "cartesian_jogger": "dimos.control.cartesian_jogger",
     "cartesian_motion_controller": "dimos.manipulation.control.servo_control.cartesian_motion_controller",
     "control_coordinator": "dimos.control.coordinator",
     "cost_mapper": "dimos.mapping.costmapper",
