@@ -15,7 +15,7 @@
 from typing import TypedDict, cast
 
 from dimos.constants import DEFAULT_CAPACITY_COLOR_IMAGE
-from dimos.core import DimosCluster, LCMTransport, pSHMTransport
+from dimos.core import DaskDeployer, LCMTransport, pSHMTransport
 from dimos.hardware.sensors.camera import zed
 from dimos.hardware.sensors.camera.module import CameraModule
 from dimos.hardware.sensors.camera.webcam import Webcam
@@ -42,7 +42,7 @@ class G1ZedDeployResult(TypedDict):
     camerainfo: CameraInfo
 
 
-def deploy_g1_monozed(dimos: DimosCluster) -> CameraModule:
+def deploy_g1_monozed(dimos: DaskDeployer) -> CameraModule:
     camera = cast(
         "CameraModule",
         dimos.deploy(  # type: ignore[attr-defined]
@@ -71,7 +71,7 @@ def deploy_g1_monozed(dimos: DimosCluster) -> CameraModule:
     return camera
 
 
-def deploy(dimos: DimosCluster, ip: str):  # type: ignore[no-untyped-def]
+def deploy(dimos: DaskDeployer, ip: str):  # type: ignore[no-untyped-def]
     nav = rosnav.deploy(  # type: ignore[call-arg]
         dimos,
         sensor_to_base_link_transform=Transform(

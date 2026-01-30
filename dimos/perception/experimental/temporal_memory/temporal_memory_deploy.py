@@ -19,14 +19,14 @@ Deployment helpers for TemporalMemory module.
 import os
 
 from dimos import spec
-from dimos.core import DimosCluster
+from dimos.core import DaskDeployer
 from dimos.models.vl.base import VlModel
 
 from .temporal_memory import TemporalMemory, TemporalMemoryConfig
 
 
 def deploy(
-    dimos: DimosCluster,
+    dimos: DaskDeployer,
     camera: spec.Camera,
     vlm: VlModel | None = None,
     config: TemporalMemoryConfig | None = None,

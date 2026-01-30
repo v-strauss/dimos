@@ -14,7 +14,7 @@
 
 import logging
 
-from dimos.core import DimosCluster
+from dimos.core import DaskDeployer
 from dimos.robot import foxglove_bridge
 from dimos.robot.unitree.connection import go2
 from dimos.utils.logging_config import setup_logger
@@ -22,7 +22,7 @@ from dimos.utils.logging_config import setup_logger
 logger = setup_logger(level=logging.INFO)
 
 
-def deploy(dimos: DimosCluster, ip: str):  # type: ignore[no-untyped-def]
+def deploy(dimos: DaskDeployer, ip: str):  # type: ignore[no-untyped-def]
     connection = go2.deploy(dimos, ip)
     foxglove_bridge.deploy(dimos)
 

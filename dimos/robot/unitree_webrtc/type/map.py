@@ -20,7 +20,7 @@ import open3d as o3d  # type: ignore[import-untyped]
 from reactivex import interval
 from reactivex.disposable import Disposable
 
-from dimos.core import DimosCluster, In, LCMTransport, Module, Out, rpc
+from dimos.core import DaskDeployer, In, LCMTransport, Module, Out, rpc
 from dimos.core.global_config import GlobalConfig
 from dimos.mapping.pointclouds.accumulators.general import GeneralPointCloudAccumulator
 from dimos.mapping.pointclouds.accumulators.protocol import PointCloudAccumulator
@@ -116,7 +116,7 @@ class Map(Module):
 mapper = Map.blueprint
 
 
-def deploy(dimos: DimosCluster, connection: Go2ConnectionProtocol):  # type: ignore[no-untyped-def]
+def deploy(dimos: DaskDeployer, connection: Go2ConnectionProtocol):  # type: ignore[no-untyped-def]
     mapper = dimos.deploy(Map, global_publish_interval=1.0)  # type: ignore[attr-defined]
     mapper.global_map.transport = LCMTransport("/global_map", PointCloud2)
     mapper.global_costmap.transport = LCMTransport("/global_costmap", OccupancyGrid)

@@ -21,7 +21,7 @@ from dimos_lcm.foxglove_bridge import (
     FoxgloveBridge as LCMFoxgloveBridge,
 )
 
-from dimos.core import DimosCluster, Module, rpc
+from dimos.core import DaskDeployer, Module, rpc
 from dimos.utils.logging_config import setup_logger
 
 if TYPE_CHECKING:
@@ -97,7 +97,7 @@ class FoxgloveBridge(Module):
 
 
 def deploy(
-    dimos: DimosCluster,
+    dimos: DaskDeployer,
     shm_channels: list[str] | None = None,
 ) -> FoxgloveBridge:
     if shm_channels is None:

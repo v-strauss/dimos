@@ -14,25 +14,22 @@
 
 from concurrent.futures import ThreadPoolExecutor
 import time
-from typing import TYPE_CHECKING, Any
+from typing import Any, cast
 
 from dimos import core
-from dimos.core import DimosCluster
+from dimos.core.deployer_protocol import DeployerProtocol, ModuleProxy
 from dimos.core.global_config import GlobalConfig
 from dimos.core.module import Module, ModuleT
 from dimos.core.resource import Resource
-from dimos.core.worker_manager import WorkerManager
-
-if TYPE_CHECKING:
-    from dimos.core.rpc_client import ModuleProxy
+from dimos.core.worker_manager import WorkerDeployer
 
 
 class ModuleCoordinator(Resource):  # type: ignore[misc]
-    _client: DimosCluster | WorkerManager | None = None
+    _deployer: DeployerProtocol | None = None
     _global_config: GlobalConfig
     _n: int | None = None
     _memory_limit: str = "auto"
-    _deployed_modules: dict[type[Module], "ModuleProxy"] = {}
+    _deployed_modules: dict[type[Module], ModuleProxy] = {}
 
     def __init__(
         self,
@@ -46,35 +43,35 @@ class ModuleCoordinator(Resource):  # type: ignore[misc]
 
     def start(self) -> None:
         if self._global_config.dask:
-            self._client = core.start(self._n, self._memory_limit)
+            self._deployer = cast("DeployerProtocol", core.start(self._n, self._memory_limit))
         else:
-            self._client = WorkerManager()
+            self._deployer = WorkerDeployer()
 
     def stop(self) -> None:
         for module in reversed(self._deployed_modules.values()):
             module.stop()
 
-        self._client.close_all()  # type: ignore[union-attr]
+        self._deployer.close_all()  # type: ignore[union-attr]
 
-    def deploy(self, module_class: type[ModuleT], *args, **kwargs) -> "ModuleProxy":  # type: ignore[no-untyped-def]
-        if not self._client:
+    def deploy(self, module_class: type[ModuleT], *args, **kwargs) -> ModuleProxy:  # type: ignore[no-untyped-def]
+        if not self._deployer:
             raise ValueError("Trying to dimos.deploy before dask client has started")
 
-        module: ModuleProxy = self._client.deploy(module_class, *args, **kwargs)  # type: ignore[attr-defined]
+        module = self._deployer.deploy(module_class, *args, **kwargs)
         self._deployed_modules[module_class] = module
         return module
 
     def deploy_parallel(
         self, module_specs: list[tuple[type[ModuleT], tuple[Any, ...], dict[str, Any]]]
-    ) -> list["ModuleProxy"]:
-        if not self._client:
+    ) -> list[ModuleProxy]:
+        if not self._deployer:
             raise ValueError("Not started")
 
-        if isinstance(self._client, WorkerManager):
-            modules = self._client.deploy_parallel(module_specs)
+        if isinstance(self._deployer, WorkerDeployer):
+            modules = self._deployer.deploy_parallel(module_specs)
             for (module_class, _, _), module in zip(module_specs, modules, strict=True):
                 self._deployed_modules[module_class] = module
-            return modules  # type: ignore[return-value]
+            return modules  # type: ignore[no-any-return]
         else:
             return [
                 self.deploy(module_class, *args, **kwargs)
@@ -83,14 +80,14 @@ class ModuleCoordinator(Resource):  # type: ignore[misc]
 
     def start_all_modules(self) -> None:
         modules = list(self._deployed_modules.values())
-        if isinstance(self._client, WorkerManager):
+        if isinstance(self._deployer, WorkerDeployer):
             with ThreadPoolExecutor(max_workers=len(modules)) as executor:
                 list(executor.map(lambda m: m.start(), modules))
         else:
             for module in modules:
                 module.start()
 
-    def get_instance(self, module: type[ModuleT]) -> "ModuleProxy":
+    def get_instance(self, module: type[ModuleT]) -> ModuleProxy:
         return self._deployed_modules.get(module)  # type: ignore[return-value, no-any-return]
 
     def loop(self) -> None:

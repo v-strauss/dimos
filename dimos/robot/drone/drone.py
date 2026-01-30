@@ -86,7 +86,7 @@ class Drone(Robot):
             RobotCapability.VISION,
         ]
 
-        self.dimos: core.DimosCluster | None = None
+        self.dimos: core.DaskDeployer | None = None
         self.connection: DroneConnectionModule | None = None
         self.camera: DroneCameraModule | None = None
         self.tracking: DroneTrackingModule | None = None

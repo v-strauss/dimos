@@ -15,7 +15,7 @@
 import pytest
 
 from dimos.core import In, Module, Out, rpc
-from dimos.core.worker_manager import WorkerManager
+from dimos.core.worker_manager import WorkerDeployer
 from dimos.msgs.geometry_msgs import Vector3
 
 
@@ -75,7 +75,7 @@ class ThirdModule(Module):
 
 @pytest.fixture
 def worker_manager():
-    manager = WorkerManager()
+    manager = WorkerDeployer()
     try:
         yield manager
     finally:

@@ -23,7 +23,7 @@ from reactivex.observable import Observable
 from reactivex.subject import Subject
 
 from dimos import spec
-from dimos.core import DimosCluster, In, Module, Out, rpc
+from dimos.core import DaskDeployer, In, Module, Out, rpc
 from dimos.core.module import ModuleConfig
 from dimos.msgs.geometry_msgs import Transform, Vector3
 from dimos.msgs.sensor_msgs import CameraInfo, Image
@@ -158,7 +158,7 @@ class Detection2DModule(Module):
 
 
 def deploy(  # type: ignore[no-untyped-def]
-    dimos: DimosCluster,
+    dimos: DaskDeployer,
     camera: spec.Camera,
     prefix: str = "/detector2d",
     **kwargs,

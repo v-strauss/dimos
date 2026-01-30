@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import multiprocessing.resource_sharer as resource_sharer
-from typing import Any
+from typing import Any, cast
 
+from dimos.core.deployer_protocol import DeployerProtocol, ModuleProxy
 from dimos.core.module import ModuleT
-from dimos.core.rpc_client import RPCClient
 from dimos.core.worker import Worker
 from dimos.utils.actor_registry import ActorRegistry
 from dimos.utils.logging_config import setup_logger
@@ -24,25 +24,25 @@ from dimos.utils.logging_config import setup_logger
 logger = setup_logger()
 
 
-class WorkerManager:
+class WorkerDeployer(DeployerProtocol):
     def __init__(self) -> None:
         self._workers: list[Worker] = []
         self._closed = False
 
-    def deploy(self, module_class: type[ModuleT], *args: Any, **kwargs: Any) -> RPCClient:
+    def deploy(self, module_class: type[ModuleT], *args: Any, **kwargs: Any) -> ModuleProxy:
         if self._closed:
-            raise RuntimeError("WorkerManager is closed")
+            raise RuntimeError("PureDeployer is closed")
 
         worker = Worker(module_class, args=args, kwargs=kwargs)
         worker.deploy()
         self._workers.append(worker)
-        return worker.get_instance()
+        return cast("ModuleProxy", worker.get_instance())
 
     def deploy_parallel(
         self, module_specs: list[tuple[type[ModuleT], tuple[Any, ...], dict[Any, Any]]]
-    ) -> list[RPCClient]:
+    ) -> list[ModuleProxy]:
         if self._closed:
-            raise RuntimeError("WorkerManager is closed")
+            raise RuntimeError("PureDeployer is closed")
 
         workers: list[Worker] = []
         for module_class, args, kwargs in module_specs:
@@ -54,7 +54,7 @@ class WorkerManager:
             worker.wait_until_ready()
             self._workers.append(worker)
 
-        return [worker.get_instance() for worker in workers]
+        return [cast("ModuleProxy", worker.get_instance()) for worker in workers]
 
     def close_all(self) -> None:
         if self._closed:

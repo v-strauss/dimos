@@ -14,12 +14,12 @@
 
 from dimos import agents
 from dimos.agents.skills.navigation import NavigationSkillContainer
-from dimos.core import DimosCluster
+from dimos.core import DaskDeployer
 from dimos.perception import spatial_perception
 from dimos.robot.unitree.g1 import g1detector
 
 
-def deploy(dimos: DimosCluster, ip: str):  # type: ignore[no-untyped-def]
+def deploy(dimos: DaskDeployer, ip: str):  # type: ignore[no-untyped-def]
     g1 = g1detector.deploy(dimos, ip)
 
     nav = g1.get("nav")

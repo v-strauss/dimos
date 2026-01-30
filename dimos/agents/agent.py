@@ -29,7 +29,7 @@ from langchain_core.messages import (
 
 from dimos.agents.llm_init import build_llm, build_system_message
 from dimos.agents.spec import AgentSpec, Model, Provider
-from dimos.core import DimosCluster, rpc
+from dimos.core import DaskDeployer, rpc
 from dimos.protocol.skill.coordinator import SkillCoordinator, SkillState, SkillStateDict
 from dimos.protocol.skill.skill import SkillContainer
 from dimos.protocol.skill.type import Output
@@ -369,7 +369,7 @@ llm_agent = LlmAgent.blueprint
 
 
 def deploy(
-    dimos: DimosCluster,
+    dimos: DaskDeployer,
     system_prompt: str = "You are a helpful assistant for controlling a Unitree Go2 robot.",
     model: Model = Model.GPT_4O,
     provider: Provider = Provider.OPENAI,  # type: ignore[attr-defined]

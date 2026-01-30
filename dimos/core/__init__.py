@@ -3,13 +3,14 @@ from __future__ import annotations
 import multiprocessing as mp
 import signal
 import time
-from typing import TYPE_CHECKING, TypeAlias, cast
+from typing import cast
 
 from dask.distributed import Client, LocalCluster
 from rich.console import Console
 
 import dimos.core.colors as colors
 from dimos.core.core import rpc
+from dimos.core.deployer_protocol import DeployerProtocol, ModuleProxy
 from dimos.core.module import Module, ModuleBase, ModuleConfig, ModuleConfigT
 from dimos.core.rpc_client import RPCClient
 from dimos.core.stream import In, Out, RemoteIn, RemoteOut, Transport
@@ -26,17 +27,13 @@ from dimos.protocol.tf import LCMTF, TF, PubSubTF, TFConfig, TFSpec
 from dimos.utils.actor_registry import ActorRegistry
 from dimos.utils.logging_config import setup_logger
 
-if TYPE_CHECKING:
-    # Avoid runtime import to prevent circular import; ruff's TC001 would otherwise move it.
-    from dimos.core.rpc_client import ModuleProxy
-
 logger = setup_logger()
 
 __all__ = [
     "LCMRPC",
     "LCMTF",
     "TF",
-    "DimosCluster",
+    "DaskDeployer",
     "In",
     "LCMTransport",
     "Module",
@@ -91,10 +88,10 @@ class CudaCleanupPlugin:
 def patch_actor(actor, cls) -> None: ...  # type: ignore[no-untyped-def]
 
 
-DimosCluster = Client
+class DaskDeployer(Client, DeployerProtocol): ...
 
 
-def patchdask(dask_client: Client, local_cluster: LocalCluster) -> DimosCluster:
+def patchdask(dask_client: Client, local_cluster: LocalCluster) -> DaskDeployer:
     def deploy(  # type: ignore[no-untyped-def]
         actor_class: type[Module],
         *args,
@@ -233,7 +230,7 @@ def patchdask(dask_client: Client, local_cluster: LocalCluster) -> DimosCluster:
     return dask_client  # type: ignore[return-value]
 
 
-def start(n: int | None = None, memory_limit: str = "auto") -> DimosCluster:
+def start(n: int | None = None, memory_limit: str = "auto") -> DaskDeployer:
     """Start a Dask LocalCluster with specified workers and memory limits.
 
     Args:
@@ -241,7 +238,7 @@ def start(n: int | None = None, memory_limit: str = "auto") -> DimosCluster:
         memory_limit: Memory limit per worker (e.g., '4GB', '2GiB', or 'auto' for Dask's default)
 
     Returns:
-        DimosCluster: A patched Dask client with deploy(), check_worker_memory(), stop(), and close_all() methods
+        DaskDeployer: A patched Dask client with deploy(), check_worker_memory(), stop(), and close_all() methods
     """
 
     console = Console()

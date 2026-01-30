@@ -22,7 +22,7 @@ from reactivex.observable import Observable
 
 from dimos import spec
 from dimos.agents import skill  # type: ignore[attr-defined]
-from dimos.core import DimosCluster, In, Out, rpc
+from dimos.core import DaskDeployer, In, Out, rpc
 from dimos.msgs.geometry_msgs import PoseStamped, Quaternion, Transform, Vector3
 from dimos.msgs.sensor_msgs import Image, PointCloud2
 from dimos.msgs.vision_msgs import Detection2DArray
@@ -196,7 +196,7 @@ class Detection3DModule(Detection2DModule):
 
 
 def deploy(  # type: ignore[no-untyped-def]
-    dimos: DimosCluster,
+    dimos: DaskDeployer,
     lidar: spec.Pointcloud,
     camera: spec.Camera,
     prefix: str = "/detector3d",

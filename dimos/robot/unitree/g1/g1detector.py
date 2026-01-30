@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dimos.core import DimosCluster
+from dimos.core import DaskDeployer
 from dimos.perception.detection import module3D, moduleDB
 from dimos.perception.detection.detectors.person.yolo import YoloPersonDetector
 from dimos.robot.unitree.g1 import g1zed
 
 
-def deploy(dimos: DimosCluster, ip: str):  # type: ignore[no-untyped-def]
+def deploy(dimos: DaskDeployer, ip: str):  # type: ignore[no-untyped-def]
     g1 = g1zed.deploy(dimos, ip)
 
     nav = g1.get("nav")

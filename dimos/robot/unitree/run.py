@@ -50,7 +50,7 @@ def main() -> None:
         "--workers",
         type=int,
         default=8,
-        help="Number of worker threads for DimosCluster (default: 8)",
+        help="Number of worker threads for DaskDeployer (default: 8)",
     )
 
     args = parser.parse_args()

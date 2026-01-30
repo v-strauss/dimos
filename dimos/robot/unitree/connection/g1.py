@@ -18,7 +18,7 @@ from typing import Any
 from reactivex.disposable import Disposable
 
 from dimos import spec
-from dimos.core import DimosCluster, In, Module, rpc
+from dimos.core import DaskDeployer, In, Module, rpc
 from dimos.core.global_config import GlobalConfig
 from dimos.msgs.geometry_msgs import Twist
 from dimos.robot.unitree.connection.connection import UnitreeWebRTCConnection
@@ -92,7 +92,7 @@ class G1Connection(Module):
 g1_connection = G1Connection.blueprint
 
 
-def deploy(dimos: DimosCluster, ip: str, local_planner: spec.LocalPlanner) -> G1Connection:
+def deploy(dimos: DaskDeployer, ip: str, local_planner: spec.LocalPlanner) -> G1Connection:
     connection = dimos.deploy(G1Connection, ip)  # type: ignore[attr-defined]
     connection.cmd_vel.connect(local_planner.cmd_vel)
     connection.start()

@@ -46,7 +46,7 @@ from tf2_msgs.msg import TFMessage as ROSTFMessage  # type: ignore[attr-defined]
 
 from dimos import spec
 from dimos.agents import Reducer, Stream, skill  # type: ignore[attr-defined]
-from dimos.core import DimosCluster, In, LCMTransport, Module, Out, pSHMTransport, rpc
+from dimos.core import DaskDeployer, In, LCMTransport, Module, Out, pSHMTransport, rpc
 from dimos.core.module import ModuleConfig
 from dimos.msgs.geometry_msgs import (
     PoseStamped,
@@ -478,7 +478,7 @@ class ROSNav(
 ros_nav = ROSNav.blueprint
 
 
-def deploy(dimos: DimosCluster):  # type: ignore[no-untyped-def]
+def deploy(dimos: DaskDeployer):  # type: ignore[no-untyped-def]
     nav = dimos.deploy(ROSNav)  # type: ignore[attr-defined]
 
     nav.pointcloud.transport = pSHMTransport("/lidar")
