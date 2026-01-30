@@ -19,7 +19,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, Literal
 
-import rerun as rr
+from reactivex.disposable import Disposable
 
 from dimos.core import Module, rpc
 from dimos.core.module import ModuleConfig
@@ -40,9 +40,7 @@ ViewerMode = Literal["native", "web", "none"]
 class Config(ModuleConfig):
     """Configuration for RerunBridgeModule."""
 
-    pubsubs: list[SubscribeAllCapable[Any, Any]] = field(
-        default_factory=lambda: [LCM(autoconf=True)]
-    )
+    spy: list[SubscribeAllCapable[Any, Any]] = field(default_factory=lambda: [LCM(autoconf=True)])
     entity_prefix: str = "world"
     topic_to_entity: Callable[[Any], str] | None = None
     viewer_mode: ViewerMode = "native"
@@ -80,7 +78,9 @@ class RerunBridgeModule(Module):
         return f"{self.config.entity_prefix}/{topic_str}"
 
     def _on_message(self, msg: Any, topic: Any) -> None:
-        """Handle incoming message - -4=----log to rerun if it has to_rerun."""
+        import rerun as rr
+
+        """Handle incoming message - log to rerun if it has to_rerun."""
         if not hasattr(msg, "to_rerun"):
             return
 
@@ -96,7 +96,7 @@ class RerunBridgeModule(Module):
 
     @rpc
     def start(self) -> None:
-        from reactivex.disposable import Disposable
+        import rerun as rr
 
         super().start()
 
@@ -126,9 +126,6 @@ class RerunBridgeModule(Module):
         super().stop()
 
 
-rerun_bridge = RerunBridgeModule.blueprint
-
-
 def main() -> None:
     """CLI entry point for rerun-bridge."""
     import argparse
@@ -148,7 +145,13 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    bridge = RerunBridgeModule(viewer_mode=args.viewer_mode, memory_limit=args.memory_limit)
+    bridge = RerunBridgeModule(
+        viewer_mode=args.viewer_mode,
+        memory_limit=args.memory_limit,
+        #        spy={
+        #            LCM: {"/color_image": {"mode": "mesh"}},
+        #        },
+    )
     bridge.start()
 
     signal.signal(signal.SIGINT, lambda *_: bridge.stop())
@@ -157,3 +160,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+rerun_bridge = RerunBridgeModule.blueprint
