@@ -235,8 +235,8 @@ class Path(Timestamped):
 
     def to_rerun(  # type: ignore[no-untyped-def]
         self,
-        color: tuple[int, int, int] = (0, 255, 128),
-        z_offset: float = 0.2,
+        color: tuple[int, int, int] = (255, 128, 0),
+        z_offset: float = 0.5,
         radii: float = 0.05,
     ):
         """Convert to rerun LineStrips3D format.

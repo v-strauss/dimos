@@ -252,10 +252,12 @@ def main() -> None:
         pubsubs=[LCM(autoconf=True)],
         # custom converters for specific rerun entity paths
         visual_override={
-            Glob("world/debug_navigation"): lambda grid: grid.to_rerun(
-                colormap="Purples",
+            "world/global_map": lambda grid: grid.to_rerun(radii=0.05),
+            "world/debug_navigation": lambda grid: grid.to_rerun(
+                colormap="Accent",
                 z_offset=0.015,
-                brightness=0.5,
+                opacity=0.33,
+                background="#484981",
             ),
         },
     )
