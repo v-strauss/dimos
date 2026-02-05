@@ -15,6 +15,8 @@
 # limitations under the License.
 
 
+import platform
+
 from dimos_lcm.foxglove_msgs.ImageAnnotations import (
     ImageAnnotations,  # type: ignore[import-untyped]
 )
@@ -30,12 +32,14 @@ from dimos.agents.skills.speak_skill import speak_skill
 from dimos.agents.spec import Provider
 from dimos.agents.vlm_agent import vlm_agent
 from dimos.agents.vlm_stream_tester import vlm_stream_tester
-from dimos.core.base_blueprints import base_blueprint
+from dimos.constants import DEFAULT_CAPACITY_COLOR_IMAGE
 from dimos.core.blueprints import autoconnect
+from dimos.core.global_config import globalconfig
 from dimos.core.transport import (
     JpegLcmTransport,
     LCMTransport,
     ROSTransport,
+    pSHMTransport,
 )
 from dimos.mapping.costmapper import cost_mapper
 from dimos.mapping.voxels import voxel_mapper
@@ -52,13 +56,82 @@ from dimos.perception.detection.module3D import Detection3DModule, detection3d_m
 from dimos.perception.experimental.temporal_memory import temporal_memory
 from dimos.perception.spatial_perception import spatial_memory
 from dimos.protocol.mcp.mcp import MCPModule
+from dimos.protocol.pubsub.impl.lcmpubsub import LCM
 from dimos.robot.unitree.connection.go2 import GO2Connection, go2_connection
 from dimos.robot.unitree_webrtc.unitree_skill_container import unitree_skills
 from dimos.utils.monitoring import utilization
 from dimos.web.websocket_vis.websocket_vis_module import websocket_vis
 
+# Mac has some issue with high bandwidth UDP, so we use pSHMTransport for color_image
+# actually we can use pSHMTransport for all platforms, and for all streams
+# TODO need a global transport toggle on blueprints/global config
+mac_transports: dict[tuple[str, type], pSHMTransport[Image]] = {
+    ("color_image", Image): pSHMTransport(
+        "color_image", default_capacity=DEFAULT_CAPACITY_COLOR_IMAGE
+    ),
+}
+
+base = autoconnect() if platform.system() == "Linux" else autoconnect().transports(mac_transports)
+
+
+rerun_config = {
+    # any pubsub that supports subscribe_all and topic that supports str(topic)
+    # is acceptable here
+    "pubsubs": [LCM(autoconf=True)],
+    # Custom converters for specific rerun entity paths
+    # Normally all these would be specified in their respectative modules
+    # Until this is implemented we have central overrides here
+    #
+    # This is unsustainable once we move to multi robot etc
+    "visual_override": {
+        "world/camera_info": lambda camera_info: camera_info.to_rerun(
+            image_topic="/world/color_image",
+            optical_frame="camera_optical",
+        ),
+        "world/global_map": lambda grid: grid.to_rerun(voxel_size=0.1),
+        "world/debug_navigation": lambda grid: grid.to_rerun(
+            colormap="Accent",
+            z_offset=0.015,
+            opacity=0.2,
+            background="#484981",
+        ),
+    },
+    # slapping a go2 shaped box on top of tf/base_link
+    "static": {
+        "world/tf/base_link": lambda rr: [
+            rr.Boxes3D(
+                half_sizes=[0.35, 0.155, 0.2],
+                colors=[(0, 255, 127)],
+                fill_mode="wireframe",
+            ),
+            rr.Transform3D(parent_frame="tf#/base_link"),
+        ]
+    },
+}
+
+
+match globalconfig.viewer_backend:
+    case "foxglove":
+        from dimos.robot.foxglove_bridge import foxglove_bridge
+
+        with_vis = autoconnect(
+            base,
+            foxglove_bridge(shm_channels=["/color_image#sensor_msgs.Image"]),
+        )
+    case "rerun":
+        from dimos.visualization.rerun.bridge import rerun_bridge
+
+        with_vis = autoconnect(base, rerun_bridge(**rerun_config))
+    case "rerun-web":
+        from dimos.visualization.rerun.bridge import rerun_bridge
+
+        with_vis = autoconnect(base, rerun_bridge(viewer_mode="web", **rerun_config))
+    case _:
+        with_vis = base
+
+
 unitree_go2_basic = autoconnect(
-    base_blueprint(),
+    with_vis,
     go2_connection(),
     websocket_vis(),
 ).global_config(n_dask_workers=4, robot_model="unitree_go2")

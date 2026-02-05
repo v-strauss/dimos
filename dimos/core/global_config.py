@@ -33,7 +33,7 @@ class GlobalConfig(BaseSettings):
     replay: bool = False
     rerun_enabled: bool = True
     rerun_server_addr: str | None = None
-    viewer_backend: ViewerBackend = "none"
+    viewer_backend: ViewerBackend = "rerun"
     n_dask_workers: int = 2
     memory_limit: str = "auto"
     mujoco_camera_position: str | None = None
@@ -54,8 +54,20 @@ class GlobalConfig(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
-        frozen=True,
     )
+
+    def update(self, **kwargs: object) -> None:
+        """Update config fields in place and invalidate cached properties."""
+        for key, value in kwargs.items():
+            if not hasattr(self, key):
+                raise AttributeError(f"GlobalConfig has no field '{key}'")
+            setattr(self, key, value)
+        for prop in (
+            "unitree_connection_type",
+            "mujoco_start_pos_float",
+            "mujoco_camera_position_float",
+        ):
+            self.__dict__.pop(prop, None)
 
     @cached_property
     def unitree_connection_type(self) -> str:
@@ -75,3 +87,6 @@ class GlobalConfig(BaseSettings):
         if self.mujoco_camera_position is None:
             return (-0.906, 0.008, 1.101, 4.931, 89.749, -46.378)
         return tuple(_get_all_numbers(self.mujoco_camera_position))
+
+
+globalconfig = GlobalConfig()

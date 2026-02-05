@@ -19,7 +19,7 @@ from reactivex.disposable import Disposable
 
 from dimos import spec
 from dimos.core import DimosCluster, In, Module, rpc
-from dimos.core.global_config import GlobalConfig
+from dimos.core.global_config import GlobalConfig, globalconfig
 from dimos.msgs.geometry_msgs import Twist
 from dimos.robot.unitree.connection.connection import UnitreeWebRTCConnection
 from dimos.utils.logging_config import setup_logger
@@ -43,7 +43,7 @@ class G1Connection(Module):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        self._global_config = global_config or GlobalConfig()
+        self._global_config = global_config or globalconfig
         self.ip = ip if ip is not None else self._global_config.robot_ip
         self.connection_type = connection_type or self._global_config.unitree_connection_type
         self.connection = None

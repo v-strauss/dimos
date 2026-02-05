@@ -25,9 +25,9 @@ from dimos.visualization.rerun.bridge import rerun_bridge
 
 
 def base_blueprint() -> Blueprint:
-    from dimos.core.global_config import GlobalConfig
+    from dimos.core.global_config import globalconfig
 
-    _config = GlobalConfig()
+    _config = globalconfig
 
     # Mac has some issue with high bandwidth UDP, so we use pSHMTransport for color_image
     # actually we can use pSHMTransport for all platforms, and for all streams

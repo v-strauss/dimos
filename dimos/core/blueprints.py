@@ -23,7 +23,7 @@ import sys
 from types import MappingProxyType
 from typing import Any, Literal, get_args, get_origin, get_type_hints
 
-from dimos.core.global_config import GlobalConfig
+from dimos.core.global_config import GlobalConfig, globalconfig
 from dimos.core.module import Module, is_module_type
 from dimos.core.module_coordinator import ModuleCoordinator
 from dimos.core.stream import In, Out
@@ -455,23 +455,20 @@ class Blueprint:
 
     def build(
         self,
-        global_config: GlobalConfig | None = None,
         cli_config_overrides: Mapping[str, Any] | None = None,
     ) -> ModuleCoordinator:
-        if global_config is None:
-            global_config = GlobalConfig()
-        global_config = global_config.model_copy(update=dict(self.global_config_overrides))
+        globalconfig.update(**dict(self.global_config_overrides))
         if cli_config_overrides:
-            global_config = global_config.model_copy(update=dict(cli_config_overrides))
+            globalconfig.update(**dict(cli_config_overrides))
 
         self._check_requirements()
         self._verify_no_name_conflicts()
 
-        module_coordinator = ModuleCoordinator(global_config=global_config)
+        module_coordinator = ModuleCoordinator(global_config=globalconfig)
         module_coordinator.start()
 
         # all module constructors are called here (each of them setup their own)
-        self._deploy_all_modules(module_coordinator, global_config)
+        self._deploy_all_modules(module_coordinator, globalconfig)
         self._connect_streams(module_coordinator)
         self._connect_rpc_methods(module_coordinator)
         self._connect_module_refs(module_coordinator)

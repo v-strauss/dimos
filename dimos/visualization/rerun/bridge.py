@@ -85,10 +85,14 @@ logger = setup_logger()
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from types import ModuleType
 
     from rerun._baseclasses import Archetype
+    from rerun.blueprint import Blueprint
 
     from dimos.protocol.pubsub.spec import SubscribeAllCapable
+
+BlueprintFactory: TypeAlias = "Callable[[ModuleType], Blueprint]"
 
 # to_rerun() can return a single archetype or a list of (entity_path, archetype) tuples
 RerunMulti: TypeAlias = "list[tuple[str, Archetype]]"
@@ -119,6 +123,21 @@ class RerunConvertible(Protocol):
 ViewerMode = Literal["native", "web", "none"]
 
 
+def _default_blueprint(rrb: ModuleType) -> Blueprint:
+    """Default blueprint with black background and raised grid."""
+    import rerun as rr
+
+    return rrb.Blueprint(
+        rrb.Spatial3DView(
+            origin="world",
+            background=rrb.Background(kind="SolidColor", color=[0, 0, 0]),
+            line_grid=rrb.LineGrid3D(
+                plane=rr.components.Plane3D.XY.with_distance(0.2),
+            ),
+        ),
+    )
+
+
 @dataclass
 class Config(ModuleConfig):
     """Configuration for RerunBridgeModule."""
@@ -136,6 +155,10 @@ class Config(ModuleConfig):
     topic_to_entity: Callable[[Any], str] | None = None
     viewer_mode: ViewerMode = "native"
     memory_limit: str = "25%"
+
+    # Blueprint factory: callable(rrb) -> Blueprint for viewer layout configuration
+    # Set to None to disable default blueprint
+    blueprint: BlueprintFactory | None = _default_blueprint
 
 
 class RerunBridgeModule(Module):
@@ -230,12 +253,18 @@ class RerunBridgeModule(Module):
         super().start()
 
         # Initialize and spawn Rerun viewer
-        rr.init("dimos-bridge")
+        rr.init("dimos")
         if self.config.viewer_mode == "native":
             rr.spawn(connect=True, memory_limit=self.config.memory_limit)
         elif self.config.viewer_mode == "web":
-            rr.serve_web_viewer(open_browser=True)
+            server_uri = rr.serve_grpc()
+            rr.serve_web_viewer(connect_to=server_uri, open_browser=False)
         # "none" - just init, no viewer (connect externally)
+
+        if self.config.blueprint:
+            import rerun.blueprint as rrb
+
+            rr.send_blueprint(self.config.blueprint(rrb))
 
         # Start pubsubs and subscribe to all messages
         for pubsub in self.config.pubsubs:

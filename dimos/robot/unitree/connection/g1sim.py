@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any
 from reactivex.disposable import Disposable
 
 from dimos.core import In, Module, Out, rpc
-from dimos.core.global_config import GlobalConfig
+from dimos.core.global_config import GlobalConfig, globalconfig
 from dimos.msgs.geometry_msgs import (
     PoseStamped,
     Quaternion,
@@ -51,7 +51,7 @@ class G1SimConnection(Module):
         *args: Any,
         **kwargs: Any,
     ) -> None:
-        self._global_config = global_config or GlobalConfig()
+        self._global_config = global_config or globalconfig
         self.ip = ip if ip is not None else self._global_config.robot_ip
         self.connection: MujocoConnection | None = None
         super().__init__(*args, **kwargs)

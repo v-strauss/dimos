@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any
 
 from dimos import core
 from dimos.core import DimosCluster
-from dimos.core.global_config import GlobalConfig
+from dimos.core.global_config import GlobalConfig, globalconfig
 from dimos.core.module import Module, ModuleT
 from dimos.core.resource import Resource
 from dimos.core.worker_manager import WorkerManager
@@ -39,7 +39,7 @@ class ModuleCoordinator(Resource):  # type: ignore[misc]
         n: int | None = None,
         global_config: GlobalConfig | None = None,
     ) -> None:
-        cfg = global_config or GlobalConfig()
+        cfg = global_config or globalconfig
         self._n = n if n is not None else cfg.n_dask_workers
         self._memory_limit = cfg.memory_limit
         self._global_config = cfg
