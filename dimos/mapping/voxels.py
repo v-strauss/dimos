@@ -23,7 +23,7 @@ from reactivex.disposable import Disposable
 from reactivex.subject import Subject
 
 from dimos.core import In, Module, Out, rpc
-from dimos.core.global_config import GlobalConfig, globalconfig
+from dimos.core.global_config import GlobalConfig, global_config
 from dimos.core.module import ModuleConfig
 from dimos.msgs.sensor_msgs import PointCloud2
 from dimos.utils.decorators import simple_mcache
@@ -51,9 +51,9 @@ class VoxelGridMapper(Module):
     lidar: In[PointCloud2]
     global_map: Out[PointCloud2]
 
-    def __init__(self, global_config: GlobalConfig | None = None, **kwargs: object) -> None:
+    def __init__(self, cfg: GlobalConfig = global_config, **kwargs: object) -> None:
         super().__init__(**kwargs)
-        self._global_config = global_config or globalconfig
+        self._global_config = cfg
 
         dev = (
             o3c.Device(self.config.device)

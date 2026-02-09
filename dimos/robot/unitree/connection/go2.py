@@ -23,7 +23,7 @@ import rerun.blueprint as rrb
 
 from dimos import spec
 from dimos.core import DimosCluster, In, LCMTransport, Module, Out, pSHMTransport, rpc
-from dimos.core.global_config import GlobalConfig, globalconfig
+from dimos.core.global_config import GlobalConfig, global_config
 from dimos.core.skill_module import SkillModule
 from dimos.msgs.geometry_msgs import (
     PoseStamped,
@@ -169,11 +169,11 @@ class GO2Connection(SkillModule, spec.Camera, spec.Pointcloud):
     def __init__(  # type: ignore[no-untyped-def]
         self,
         ip: str | None = None,
-        global_config: GlobalConfig | None = None,
+        cfg: GlobalConfig = global_config,
         *args,
         **kwargs,
     ) -> None:
-        self._global_config = global_config or globalconfig
+        self._global_config = cfg
 
         ip = ip if ip is not None else self._global_config.robot_ip
 

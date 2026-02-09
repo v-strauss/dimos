@@ -34,7 +34,7 @@ from dimos.agents.vlm_agent import vlm_agent
 from dimos.agents.vlm_stream_tester import vlm_stream_tester
 from dimos.constants import DEFAULT_CAPACITY_COLOR_IMAGE
 from dimos.core.blueprints import autoconnect
-from dimos.core.global_config import globalconfig
+from dimos.core.global_config import global_config
 from dimos.core.transport import (
     JpegLcmTransport,
     LCMTransport,
@@ -110,7 +110,7 @@ rerun_config = {
 }
 
 
-match globalconfig.viewer_backend:
+match global_config.viewer_backend:
     case "foxglove":
         from dimos.robot.foxglove_bridge import foxglove_bridge
 

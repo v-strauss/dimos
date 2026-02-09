@@ -18,7 +18,7 @@ from dimos_lcm.std_msgs import Bool, String
 from reactivex.disposable import Disposable
 
 from dimos.core import In, Module, Out, rpc
-from dimos.core.global_config import GlobalConfig, globalconfig
+from dimos.core.global_config import GlobalConfig, global_config
 from dimos.msgs.geometry_msgs import PoseStamped, Twist
 from dimos.msgs.nav_msgs import OccupancyGrid, Path
 from dimos.navigation.base import NavigationInterface, NavigationState
@@ -40,9 +40,9 @@ class ReplanningAStarPlanner(Module, NavigationInterface):
     _planner: GlobalPlanner
     _global_config: GlobalConfig
 
-    def __init__(self, global_config: GlobalConfig | None = None) -> None:
+    def __init__(self, cfg: GlobalConfig = global_config) -> None:
         super().__init__()
-        self._global_config = global_config or globalconfig
+        self._global_config = cfg
         self._planner = GlobalPlanner(self._global_config)
 
     @rpc

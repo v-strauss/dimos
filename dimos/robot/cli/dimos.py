@@ -20,7 +20,7 @@ from typing import Any, Optional, get_args, get_origin
 import typer
 
 from dimos.core.blueprints import autoconnect
-from dimos.core.global_config import GlobalConfig, globalconfig
+from dimos.core.global_config import GlobalConfig, global_config
 from dimos.protocol import pubsub
 from dimos.robot.all_blueprints import all_blueprints
 from dimos.robot.cli.topic import topic_echo, topic_send
@@ -113,7 +113,7 @@ def run(
     setup_exception_handler()
 
     cli_config_overrides: dict[str, Any] = ctx.obj
-    globalconfig.update(**cli_config_overrides)
+    global_config.update(**cli_config_overrides)
     pubsub.lcm.autoconf()  # type: ignore[attr-defined]
     blueprint = get_blueprint_by_name(robot_type.value)
 
@@ -129,9 +129,9 @@ def run(
 def show_config(ctx: typer.Context) -> None:
     """Show current config settings and their values."""
     cli_config_overrides: dict[str, Any] = ctx.obj
-    globalconfig.update(**cli_config_overrides)
+    global_config.update(**cli_config_overrides)
 
-    for field_name, value in globalconfig.model_dump().items():
+    for field_name, value in global_config.model_dump().items():
         typer.echo(f"{field_name}: {value}")
 
 

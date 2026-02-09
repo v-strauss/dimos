@@ -23,7 +23,7 @@ from reactivex import operators as ops
 from dimos.agents import Output, Reducer, Stream, skill
 from dimos.core import Module, ModuleConfig, Out, rpc
 from dimos.core.blueprints import autoconnect
-from dimos.core.global_config import GlobalConfig, globalconfig
+from dimos.core.global_config import GlobalConfig, global_config
 from dimos.hardware.sensors.camera.spec import CameraHardware
 from dimos.hardware.sensors.camera.webcam import Webcam
 from dimos.msgs.geometry_msgs import Quaternion, Transform, Vector3
@@ -60,10 +60,8 @@ class CameraModule(Module[CameraModuleConfig], perception.Camera):
     default_config = CameraModuleConfig
     _global_config: GlobalConfig
 
-    def __init__(
-        self, *args: Any, global_config: GlobalConfig | None = None, **kwargs: Any
-    ) -> None:
-        self._global_config = global_config or globalconfig
+    def __init__(self, *args: Any, cfg: GlobalConfig = global_config, **kwargs: Any) -> None:
+        self._global_config = cfg
         super().__init__(*args, **kwargs)
 
     @rpc
@@ -128,6 +126,5 @@ camera_module = CameraModule.blueprint
 demo_camera = autoconnect(
     camera_module(),
 )
-
 
 __all__ = ["CameraModule", "camera_module"]

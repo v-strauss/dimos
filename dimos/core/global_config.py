@@ -89,4 +89,4 @@ class GlobalConfig(BaseSettings):
         return tuple(_get_all_numbers(self.mujoco_camera_position))
 
 
-globalconfig = GlobalConfig()
+global_config = GlobalConfig()

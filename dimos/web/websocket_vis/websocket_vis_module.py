@@ -46,7 +46,7 @@ _COMMAND_CENTER_DIR = (
 )
 
 from dimos.core import In, Module, Out, rpc
-from dimos.core.global_config import GlobalConfig, globalconfig
+from dimos.core.global_config import GlobalConfig, global_config
 from dimos.mapping.occupancy.gradient import gradient
 from dimos.mapping.occupancy.inflation import simple_inflate
 from dimos.mapping.types import LatLon
@@ -98,17 +98,17 @@ class WebsocketVisModule(Module):
     def __init__(
         self,
         port: int = 7779,
-        global_config: GlobalConfig | None = None,
+        cfg: GlobalConfig = global_config,
         **kwargs: Any,
     ) -> None:
         """Initialize the WebSocket visualization module.
 
         Args:
             port: Port to run the web server on
-            global_config: Optional global config for viewer backend settings
+            cfg: Optional global config for viewer backend settings
         """
         super().__init__(**kwargs)
-        self._global_config = global_config or globalconfig
+        self._global_config = cfg
 
         self.port = port
         self._uvicorn_server_thread: threading.Thread | None = None

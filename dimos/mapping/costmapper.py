@@ -18,7 +18,7 @@ import time
 from reactivex import operators as ops
 
 from dimos.core import In, Module, Out, rpc
-from dimos.core.global_config import GlobalConfig, globalconfig
+from dimos.core.global_config import GlobalConfig, global_config
 from dimos.core.module import ModuleConfig
 from dimos.mapping.pointclouds.occupancy import (
     OCCUPANCY_ALGOS,
@@ -45,9 +45,9 @@ class CostMapper(Module):
     global_map: In[PointCloud2]
     global_costmap: Out[OccupancyGrid]
 
-    def __init__(self, global_config: GlobalConfig | None = None, **kwargs: object) -> None:
+    def __init__(self, cfg: GlobalConfig = global_config, **kwargs: object) -> None:
         super().__init__(**kwargs)
-        self._global_config = global_config or globalconfig
+        self._global_config = cfg
 
     @rpc
     def start(self) -> None:
