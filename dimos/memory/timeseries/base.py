@@ -14,7 +14,7 @@
 """Unified time series storage and replay."""
 
 from abc import ABC, abstractmethod
-from collections.abc import Callable, Iterator
+from collections.abc import Iterator
 import time
 from typing import Generic, TypeVar
 
@@ -26,18 +26,16 @@ from reactivex.scheduler import TimeoutScheduler
 
 from dimos.types.timestamped import Timestamped
 
-T = TypeVar("T")
+T = TypeVar("T", bound=Timestamped)
 
 
 class TimeSeriesStore(Generic[T], ABC):
     """Unified storage + replay for sensor data.
 
-    Implement 4 abstract methods for your backend (in-memory, pickle, sqlite, etc.).
+    Implement abstract methods for your backend (in-memory, pickle, sqlite, etc.).
     All iteration, streaming, and seek logic comes free from the base class.
 
-    T can be any type — timestamps are provided explicitly via the _raw methods.
-    The default save/pipe_save/consume_stream methods work with Timestamped data.
-    Use save_raw/pipe_save_raw/consume_stream_raw for non-Timestamped data.
+    T must be a Timestamped subclass — timestamps are taken from .ts attribute.
     """
 
     @abstractmethod
@@ -147,67 +145,31 @@ class TimeSeriesStore(Generic[T], ABC):
         """Return items in [start, end) range."""
         return [data for _, data in self._iter_items(start=start, end=end)]
 
-    def save(self, *data: Timestamped) -> None:
-        """Save one or more Timestamped items using their .ts attribute."""
+    def save(self, *data: T) -> None:
+        """Save one or more Timestamped items."""
         for item in data:
-            self._save(item.ts, item)  # type: ignore[arg-type]
-
-    def save_raw(self, timestamp: float, data: T) -> None:
-        """Save a single data item at the given timestamp."""
-        self._save(timestamp, data)
+            self._save(item.ts, item)
 
     def pipe_save(self, source: Observable[T]) -> Observable[T]:
-        """Operator for Observable.pipe() — saves Timestamped items using .ts.
+        """Operator for Observable.pipe() — saves items using .ts.
 
         Usage:
             observable.pipe(store.pipe_save).subscribe(...)
         """
 
         def _save_and_return(data: T) -> T:
-            ts_data: Timestamped = data  # type: ignore[assignment]
-            self._save(ts_data.ts, data)
+            self._save(data.ts, data)
             return data
 
         return source.pipe(ops.map(_save_and_return))
 
-    def pipe_save_raw(self, key: Callable[[T], float]) -> Callable[[Observable[T]], Observable[T]]:
-        """Operator for Observable.pipe() — saves each item using key(item) as timestamp.
-
-        Usage:
-            observable.pipe(store.pipe_save_raw(lambda x: x.ts)).subscribe(...)
-        """
-
-        def _operator(source: Observable[T]) -> Observable[T]:
-            def _save_and_return(data: T) -> T:
-                self._save(key(data), data)
-                return data
-
-            return source.pipe(ops.map(_save_and_return))
-
-        return _operator
-
     def consume_stream(self, observable: Observable[T]) -> rx.abc.DisposableBase:
-        """Subscribe to an observable and save Timestamped items using .ts.
+        """Subscribe to an observable and save items using .ts.
 
         Usage:
             disposable = store.consume_stream(observable)
         """
-
-        def _save_item(data: T) -> None:
-            ts_data: Timestamped = data  # type: ignore[assignment]
-            self._save(ts_data.ts, data)
-
-        return observable.subscribe(on_next=_save_item)
-
-    def consume_stream_raw(
-        self, observable: Observable[T], key: Callable[[T], float]
-    ) -> rx.abc.DisposableBase:
-        """Subscribe to an observable and save each item using key(item) as timestamp.
-
-        Usage:
-            disposable = store.consume_stream_raw(observable, key=lambda x: x.ts)
-        """
-        return observable.subscribe(on_next=lambda data: self._save(key(data), data))
+        return observable.subscribe(on_next=lambda data: self._save(data.ts, data))
 
     def load(self, timestamp: float) -> T | None:
         """Load data at exact timestamp."""
@@ -217,9 +179,9 @@ class TimeSeriesStore(Generic[T], ABC):
         """Get data at exact timestamp or closest within tolerance."""
         return self.find_closest(timestamp, tolerance)
 
-    def add(self, data: Timestamped) -> None:
-        """Add a single Timestamped item using its .ts attribute."""
-        self._save(data.ts, data)  # type: ignore[arg-type]
+    def add(self, data: T) -> None:
+        """Add a single Timestamped item."""
+        self._save(data.ts, data)
 
     def prune_old(self, cutoff: float) -> None:
         """Prune items older than cutoff timestamp."""

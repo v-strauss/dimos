@@ -45,7 +45,7 @@ class SqliteStore(TimeSeriesStore[T]):
     Usage:
         # Named store (uses data/ directory, auto-downloads from LFS if needed)
         store = SqliteStore("recordings/lidar")  # -> data/recordings/lidar.db
-        store.save(data.ts, data)  # explicit timestamp
+        store.save(data)  # saves using data.ts
 
         # Absolute path
         store = SqliteStore("/path/to/sensors.db")

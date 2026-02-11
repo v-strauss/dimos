@@ -50,7 +50,7 @@ class PostgresStore(TimeSeriesStore[T], Resource):
         store.start()  # open connection
 
         # Use store
-        store.save(data.ts, data)  # explicit timestamp
+        store.save(data)  # saves using data.ts
         data = store.find_closest_seek(10.0)
 
         # Cleanup

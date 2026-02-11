@@ -357,23 +357,6 @@ class TestTimeSeriesStore:
             SampleData("c", 3.0),
         ]
 
-    def test_pipe_save_raw(self, store_factory, store_name, temp_dir):
-        import reactivex as rx
-
-        store = store_factory(temp_dir)
-
-        source = rx.of(
-            SampleData("a", 1.0),
-            SampleData("b", 2.0),
-        )
-
-        results: list[SampleData] = []
-        source.pipe(store.pipe_save_raw(lambda d: d.ts)).subscribe(results.append)
-
-        assert store.load(1.0) == SampleData("a", 1.0)
-        assert store.load(2.0) == SampleData("b", 2.0)
-        assert len(results) == 2
-
     def test_consume_stream(self, store_factory, store_name, temp_dir):
         import reactivex as rx
 
@@ -393,23 +376,6 @@ class TestTimeSeriesStore:
         assert store.load(1.0) == SampleData("a", 1.0)
         assert store.load(2.0) == SampleData("b", 2.0)
         assert store.load(3.0) == SampleData("c", 3.0)
-
-        disposable.dispose()
-
-    def test_consume_stream_raw(self, store_factory, store_name, temp_dir):
-        import reactivex as rx
-
-        store = store_factory(temp_dir)
-
-        source = rx.of(
-            SampleData("a", 1.0),
-            SampleData("b", 2.0),
-        )
-
-        disposable = store.consume_stream_raw(source, key=lambda d: d.ts)
-
-        assert store.load(1.0) == SampleData("a", 1.0)
-        assert store.load(2.0) == SampleData("b", 2.0)
 
         disposable.dispose()
 
@@ -535,100 +501,33 @@ class TestCollectionAPI:
 
 
 class TestInMemoryStoreUpdate:
-    """Test InMemoryStore duplicate timestamp handling."""
-
-    def test_overwrite_existing_timestamp(self):
-        store: InMemoryStore[str] = InMemoryStore()
-        store.save_raw(1.0, "old")
-        store.save_raw(1.0, "new")
-        assert store.load(1.0) == "new"
-        assert len(store) == 1
+    """Test InMemoryStore operations."""
 
     def test_delete(self):
-        store: InMemoryStore[str] = InMemoryStore()
-        store.save_raw(1.0, "a")
-        store.save_raw(2.0, "b")
+        store: InMemoryStore[SampleData] = InMemoryStore()
+        store.save(SampleData("a", 1.0))
+        store.save(SampleData("b", 2.0))
         assert len(store) == 2
         deleted = store._delete(1.0)
-        assert deleted == "a"
+        assert deleted == SampleData("a", 1.0)
         assert len(store) == 1
         assert store.load(1.0) is None
 
 
-class TestNonTimestampedData:
-    """Test TimeSeriesStore with plain (non-Timestamped) data types."""
-
-    def test_store_plain_strings(self):
-        store: InMemoryStore[str] = InMemoryStore()
-        store.save_raw(1.0, "hello")
-        store.save_raw(2.0, "world")
-
-        assert store.load(1.0) == "hello"
-        assert store.load(2.0) == "world"
-        assert store.first() == "hello"
-        assert store.first_timestamp() == 1.0
-
-    def test_iterate_plain_data(self):
-        store: InMemoryStore[int] = InMemoryStore()
-        store.save_raw(10.0, 100)
-        store.save_raw(20.0, 200)
-        store.save_raw(30.0, 300)
-
-        assert list(store.iterate()) == [100, 200, 300]
-        assert list(store.iterate_items()) == [(10.0, 100), (20.0, 200), (30.0, 300)]
-
-    def test_find_closest_plain_data(self):
-        store: InMemoryStore[str] = InMemoryStore()
-        store.save_raw(1.0, "a")
-        store.save_raw(3.0, "b")
-        store.save_raw(5.0, "c")
-
-        assert store.find_closest(2.0) == "a"
-        assert store.find_closest(4.0) == "b"
-        assert store.find_closest_seek(2.0) == "b"
-
-    def test_pipe_save_raw_plain_data(self):
-        import reactivex as rx
-
-        store: InMemoryStore[dict] = InMemoryStore()
-        source = rx.of(
-            {"ts": 1.0, "val": "x"},
-            {"ts": 2.0, "val": "y"},
-        )
-
-        results: list[dict] = []
-        source.pipe(store.pipe_save_raw(lambda d: d["ts"])).subscribe(results.append)
-
-        assert store.load(1.0) == {"ts": 1.0, "val": "x"}
-        assert store.load(2.0) == {"ts": 2.0, "val": "y"}
-        assert len(results) == 2
-
-    def test_consume_stream_raw_plain_data(self):
-        import reactivex as rx
-
-        store: InMemoryStore[list] = InMemoryStore()
-        source = rx.of(
-            [1.0, "data_a"],
-            [2.0, "data_b"],
-        )
-
-        disposable = store.consume_stream_raw(source, key=lambda d: d[0])
-
-        assert store.load(1.0) == [1.0, "data_a"]
-        assert store.load(2.0) == [2.0, "data_b"]
-
-        disposable.dispose()
-
-
 class TestPerformance:
-    """Benchmarks comparing InMemoryStore vs TimestampedCollection."""
+    """Benchmarks comparing InMemoryStore vs TimestampedCollection.
+
+    GC is disabled during measurements to avoid non-deterministic pauses.
+    Store has ~2x overhead vs collection due to duplicate-check + method chain,
+    so we assert < 3x to leave margin for CI variance.
+    """
 
     N = 100_000
 
     def _make_populated_store(self) -> InMemoryStore[SampleData]:
         store: InMemoryStore[SampleData] = InMemoryStore()
         for i in range(self.N):
-            store.save_raw(float(i), SampleData(f"v{i}", float(i)))
+            store.save(SampleData(f"v{i}", float(i)))
         return store
 
     def _make_populated_collection(self) -> "TimestampedCollection[SampleData]":
@@ -640,29 +539,36 @@ class TestPerformance:
         return coll
 
     def test_insert_performance(self) -> None:
-        """Insert N items. InMemoryStore should match TimestampedCollection."""
+        """Insert N items. InMemoryStore should be within 3x of TimestampedCollection."""
+        import gc
         import time as time_mod
 
         from dimos.types.timestamped import TimestampedCollection
 
         store: InMemoryStore[SampleData] = InMemoryStore()
+        gc.collect()
+        gc.disable()
         t0 = time_mod.perf_counter()
         for i in range(self.N):
-            store.save_raw(float(i), SampleData(f"v{i}", float(i)))
+            store.save(SampleData(f"v{i}", float(i)))
         store_time = time_mod.perf_counter() - t0
+        gc.enable()
 
         coll: TimestampedCollection[SampleData] = TimestampedCollection()
+        gc.collect()
+        gc.disable()
         t0 = time_mod.perf_counter()
         for i in range(self.N):
             coll.add(SampleData(f"v{i}", float(i)))
         coll_time = time_mod.perf_counter() - t0
+        gc.enable()
 
         print(f"\nInsert {self.N}: store={store_time:.3f}s, collection={coll_time:.3f}s")
-        # Store maintains dict + SortedKeyList so inserts are ~2-10x slower than collection
-        assert store_time < coll_time * 15
+        assert store_time < coll_time * 3
 
     def test_find_closest_performance(self) -> None:
         """find_closest on N items. Both should be O(log n)."""
+        import gc
         import random
         import time as time_mod
 
@@ -671,6 +577,8 @@ class TestPerformance:
 
         queries = [random.uniform(0, self.N) for _ in range(10_000)]
 
+        gc.collect()
+        gc.disable()
         t0 = time_mod.perf_counter()
         for q in queries:
             store.find_closest(q)
@@ -680,35 +588,43 @@ class TestPerformance:
         for q in queries:
             coll.find_closest(q)
         coll_time = time_mod.perf_counter() - t0
+        gc.enable()
 
         print(
             f"\nfind_closest 10k on {self.N}: store={store_time:.3f}s, collection={coll_time:.3f}s"
         )
-        assert store_time < coll_time * 5
+        assert store_time < coll_time * 3
 
     def test_interleaved_write_read(self) -> None:
         """Alternating write + find_closest. Old InMemoryStore was O(n log n) per read."""
+        import gc
         import time as time_mod
 
         store: InMemoryStore[SampleData] = InMemoryStore()
 
+        gc.collect()
+        gc.disable()
         t0 = time_mod.perf_counter()
         for i in range(self.N):
-            store.save_raw(float(i), SampleData(f"v{i}", float(i)))
+            store.save(SampleData(f"v{i}", float(i)))
             if i % 10 == 0:
                 store.find_closest(float(i) / 2)
         elapsed = time_mod.perf_counter() - t0
+        gc.enable()
 
         print(f"\nInterleaved write+read {self.N}: {elapsed:.3f}s")
         assert elapsed < 10.0
 
     def test_iteration_performance(self) -> None:
         """Full iteration over N items."""
+        import gc
         import time as time_mod
 
         store = self._make_populated_store()
         coll = self._make_populated_collection()
 
+        gc.collect()
+        gc.disable()
         t0 = time_mod.perf_counter()
         count_store = sum(1 for _ in store)
         store_time = time_mod.perf_counter() - t0
@@ -716,7 +632,8 @@ class TestPerformance:
         t0 = time_mod.perf_counter()
         count_coll = sum(1 for _ in coll)
         coll_time = time_mod.perf_counter() - t0
+        gc.enable()
 
         assert count_store == count_coll == self.N
         print(f"\nIterate {self.N}: store={store_time:.3f}s, collection={coll_time:.3f}s")
-        assert store_time < coll_time * 5
+        assert store_time < coll_time * 3
