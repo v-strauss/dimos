@@ -25,7 +25,6 @@ from reactivex import operators as ops
 from dimos.core import Module, ModuleConfig, Out, rpc
 from dimos.hardware.sensors.lidar.spec import LidarHardware
 from dimos.msgs.geometry_msgs import Quaternion, Transform, Vector3
-from dimos.msgs.sensor_msgs.Imu import Imu
 from dimos.msgs.sensor_msgs.PointCloud2 import PointCloud2
 from dimos.spec import perception
 
@@ -98,45 +97,10 @@ class LidarModule(Module[LidarModuleConfig], perception.Lidar):
         super().stop()
 
 
-# ---------------------------------------------------------------------------
-# Livox-specific: LiDAR + IMU
-# ---------------------------------------------------------------------------
-
-
-@dataclass
-class LivoxLidarModuleConfig(LidarModuleConfig):
-    enable_imu: bool = True
-
-
-class LivoxLidarModule(LidarModule, perception.IMU):
-    """Livox LiDAR module — pointcloud + IMU.
-
-    Extends LidarModule with IMU stream support for sensors like the Mid-360.
-    """
-
-    imu: Out[Imu]
-
-    config: LivoxLidarModuleConfig  # type: ignore[assignment]
-    default_config = LivoxLidarModuleConfig  # type: ignore[assignment]
-
-    @rpc
-    def start(self) -> None:
-        super().start()
-
-        if self.config.enable_imu:
-            imu_stream = self.hardware.imu_stream()
-            if imu_stream is not None:
-                self._disposables.add(
-                    imu_stream.subscribe(lambda imu_msg: self.imu.publish(imu_msg)),
-                )
-
-
 lidar_module = LidarModule.blueprint
-livox_lidar_module = LivoxLidarModule.blueprint
 
 __all__ = [
     "LidarModule",
-    "LivoxLidarModule",
+    "LidarModuleConfig",
     "lidar_module",
-    "livox_lidar_module",
 ]
