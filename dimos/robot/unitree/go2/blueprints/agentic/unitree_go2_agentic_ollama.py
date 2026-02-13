@@ -13,8 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from dimos.agents.agent import agent
 from dimos.agents.ollama_agent import ollama_installed
-from dimos.agents_deprecated import agent
 from dimos.core.blueprints import autoconnect
 from dimos.robot.unitree.go2.blueprints.agentic._common_agentic import _common_agentic
 from dimos.robot.unitree.go2.blueprints.smart.unitree_go2_spatial import unitree_go2_spatial

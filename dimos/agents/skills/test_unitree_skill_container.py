@@ -17,10 +17,7 @@ import difflib
 from langchain_core.messages import HumanMessage
 import pytest
 
-from dimos.robot.unitree_webrtc.unitree_skill_container import (
-    _UNITREE_COMMANDS,
-    UnitreeSkillContainer,
-)
+from dimos.robot.unitree.unitree_skill_container import _UNITREE_COMMANDS, UnitreeSkillContainer
 
 
 class MockedUnitreeSkill(UnitreeSkillContainer):
