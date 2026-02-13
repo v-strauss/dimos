@@ -53,7 +53,7 @@ class LidarModule(Module[LidarModuleConfig], perception.Lidar):
     Publishes PointCloud2 messages and TF transforms.
     """
 
-    pointcloud: Out[PointCloud2]
+    lidar: Out[PointCloud2]
 
     hardware: LidarHardware[Any]
 
@@ -71,7 +71,7 @@ class LidarModule(Module[LidarModuleConfig], perception.Lidar):
             stream = stream.pipe(ops.sample(1.0 / self.config.frequency))
 
         self._disposables.add(
-            stream.subscribe(lambda pc: self.pointcloud.publish(pc)),
+            stream.subscribe(lambda pc: self.lidar.publish(pc)),
         )
 
         self._disposables.add(

@@ -20,11 +20,11 @@ the Livox SDK2 C API and publishes on LCM.
 
 Usage::
 
-    from dimos.hardware.sensors.lidar.livox.module import Mid360Module
+    from dimos.hardware.sensors.lidar.livox.module import Mid360
     from dimos.core.blueprints import autoconnect
 
     autoconnect(
-        Mid360Module.blueprint(host_ip="192.168.1.5"),
+        Mid360.blueprint(host_ip="192.168.1.5"),
         SomeConsumer.blueprint(),
     ).build().loop()
 """
@@ -68,7 +68,7 @@ class Mid360Config(NativeModuleConfig):
     host_log_data_port: int = 56501
 
 
-class Mid360Module(NativeModule, perception.Lidar, perception.IMU):
+class Mid360(NativeModule, perception.Lidar, perception.IMU):
     """Livox Mid-360 LiDAR module backed by a native C++ binary.
 
     Ports:
@@ -79,14 +79,14 @@ class Mid360Module(NativeModule, perception.Lidar, perception.IMU):
     config: Mid360Config
     default_config = Mid360Config
 
-    pointcloud: Out[PointCloud2]
+    lidar: Out[PointCloud2]
     imu: Out[Imu]
 
 
-mid360_module = Mid360Module.blueprint
+mid360_module = Mid360.blueprint
 
 __all__ = [
+    "Mid360",
     "Mid360Config",
-    "Mid360Module",
     "mid360_module",
 ]

@@ -40,7 +40,7 @@ class IMU(Protocol):
     imu: Out[Imu]
 
 
-class Lidar(Pointcloud, Protocol):
+class Lidar(Protocol):
     """LiDAR sensor providing point clouds."""
 
-    pass
+    lidar: Out[PointCloud2]

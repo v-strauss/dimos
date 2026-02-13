@@ -65,14 +65,14 @@ This persists across reboots. The lidar defaults to `192.168.1.155`.
 
 ## Usage
 
-Normally launched by `Mid360Module` via the NativeModule framework:
+Normally launched by `Mid360` via the NativeModule framework:
 
 ```python
-from dimos.hardware.sensors.lidar.livox.module import Mid360Module
+from dimos.hardware.sensors.lidar.livox.module import Mid360
 from dimos.core.blueprints import autoconnect
 
 autoconnect(
-    Mid360Module.blueprint(host_ip="192.168.1.5"),
+    Mid360.blueprint(host_ip="192.168.1.5"),
     SomeConsumer.blueprint(),
 ).build().loop()
 ```
@@ -111,4 +111,4 @@ lcm-spy
 | `dimos_native_module.hpp` | Reusable header for parsing NativeModule CLI args        |
 | `flake.nix`               | Nix flake for hermetic builds                            |
 | `CMakeLists.txt`          | Build config, fetches dimos-lcm headers automatically    |
-| `../module.py`            | Python NativeModule wrapper (`Mid360Module`)             |
+| `../module.py`            | Python NativeModule wrapper (`Mid360`)                   |
