@@ -9,8 +9,12 @@
             ╚═════╝ ╚═╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═══╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝
 </pre>
 
-<img src="assets/dimensional.svg" alt="Dimensional" />
 <img src="assets/dimensional-text.svg" alt="Dimensional" />
+
+LIGHT/DARK switch
+
+![DIMENSIONAL](assets/dimensional-light.svg#gh-light-mode-only)
+![DIMENSIONAL](assets/dimensional-dark.svg#gh-dark-mode-only)
 
 <br>
 
