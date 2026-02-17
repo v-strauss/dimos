@@ -64,6 +64,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
 
+    from dimos.hardware.drive_trains.spec import TwistBaseAdapter
     from dimos.hardware.manipulators.spec import ManipulatorAdapter
 
 logger = setup_logger()
