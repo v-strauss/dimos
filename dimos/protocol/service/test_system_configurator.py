@@ -536,17 +536,39 @@ class TestClockSyncConfigurator:
         configurator = ClockSyncConfigurator()
         assert configurator.critical is False
 
-    def test_explanation_on_linux(self) -> None:
+    def test_explanation_on_linux_with_ntpdate(self) -> None:
         configurator = ClockSyncConfigurator()
         configurator._offset = 0.5  # 500ms
-        with patch(
-            "dimos.protocol.service.system_configurator.clock_sync.platform.system",
-            return_value="Linux",
+        with (
+            patch(
+                "dimos.protocol.service.system_configurator.clock_sync.platform.system",
+                return_value="Linux",
+            ),
+            patch(
+                "dimos.protocol.service.system_configurator.clock_sync.shutil.which",
+                return_value="/usr/bin/ntpdate",
+            ),
         ):
             explanation = configurator.explanation()
             assert explanation is not None
             assert "+500.0 ms" in explanation or "+0.5 s" in explanation
-            assert "timedatectl" in explanation
+            assert "ntpdate" in explanation
+
+    def test_explanation_on_linux_no_ntp_tools(self) -> None:
+        configurator = ClockSyncConfigurator()
+        configurator._offset = 0.5
+        with (
+            patch(
+                "dimos.protocol.service.system_configurator.clock_sync.platform.system",
+                return_value="Linux",
+            ),
+            patch(
+                "dimos.protocol.service.system_configurator.clock_sync.shutil.which",
+                return_value=None,
+            ),
+        ):
+            explanation = configurator.explanation()
+            assert "install ntpdate" in explanation
             assert "systemd-timesyncd" in explanation
 
     def test_explanation_on_macos(self) -> None:
@@ -566,22 +588,66 @@ class TestClockSyncConfigurator:
         configurator._offset = None
         assert configurator.explanation() is None
 
-    def test_fix_on_linux(self) -> None:
+    def test_fix_on_linux_with_ntpdate(self) -> None:
         _is_root_user.cache_clear()
         configurator = ClockSyncConfigurator()
-        with patch(
-            "dimos.protocol.service.system_configurator.clock_sync.platform.system",
-            return_value="Linux",
+        with (
+            patch(
+                "dimos.protocol.service.system_configurator.clock_sync.platform.system",
+                return_value="Linux",
+            ),
+            patch(
+                "dimos.protocol.service.system_configurator.clock_sync.shutil.which",
+                side_effect=lambda cmd: "/usr/bin/ntpdate" if cmd == "ntpdate" else None,
+            ),
+            patch("os.geteuid", return_value=0),
+            patch("subprocess.run") as mock_run,
         ):
-            with patch("os.geteuid", return_value=0):
-                with patch("subprocess.run") as mock_run:
-                    mock_run.return_value = MagicMock(returncode=0)
-                    configurator.fix()
-                    assert mock_run.call_count == 2
-                    # First call: timedatectl set-ntp true
-                    assert "timedatectl" in mock_run.call_args_list[0][0][0]
-                    # Second call: systemctl restart systemd-timesyncd
-                    assert "systemctl" in mock_run.call_args_list[1][0][0]
+            mock_run.return_value = MagicMock(returncode=0)
+            configurator.fix()
+            assert mock_run.call_count == 1
+            assert "ntpdate" in mock_run.call_args_list[0][0][0]
+
+    def test_fix_on_linux_sntp_fallback(self) -> None:
+        _is_root_user.cache_clear()
+        configurator = ClockSyncConfigurator()
+        with (
+            patch(
+                "dimos.protocol.service.system_configurator.clock_sync.platform.system",
+                return_value="Linux",
+            ),
+            patch(
+                "dimos.protocol.service.system_configurator.clock_sync.shutil.which",
+                side_effect=lambda cmd: "/usr/bin/sntp" if cmd == "sntp" else None,
+            ),
+            patch("os.geteuid", return_value=0),
+            patch("subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = MagicMock(returncode=0)
+            configurator.fix()
+            assert mock_run.call_count == 1
+            assert "sntp" in mock_run.call_args_list[0][0][0]
+
+    def test_fix_on_linux_date_fallback(self) -> None:
+        _is_root_user.cache_clear()
+        configurator = ClockSyncConfigurator()
+        configurator._offset = 1.0
+        with (
+            patch(
+                "dimos.protocol.service.system_configurator.clock_sync.platform.system",
+                return_value="Linux",
+            ),
+            patch(
+                "dimos.protocol.service.system_configurator.clock_sync.shutil.which",
+                return_value=None,
+            ),
+            patch("os.geteuid", return_value=0),
+            patch("subprocess.run") as mock_run,
+        ):
+            mock_run.return_value = MagicMock(returncode=0)
+            configurator.fix()
+            assert mock_run.call_count == 1
+            assert "date" in mock_run.call_args_list[0][0][0]
 
     def test_fix_on_macos(self) -> None:
         _is_root_user.cache_clear()

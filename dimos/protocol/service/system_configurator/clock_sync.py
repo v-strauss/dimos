@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import platform
+import shutil
 import socket
 import struct
 import time
@@ -85,56 +86,55 @@ class ClockSyncConfigurator(SystemConfigurator):
         if abs(self._offset) <= self.MAX_OFFSET_SECONDS:
             return True
 
-        print(
-            f"[clock-sync] WARNING: clock offset is {human_duration(self._offset)} "
-            f"(threshold: ±{self.MAX_OFFSET_SECONDS * 1000:.0f} ms)"
-        )
         return False
+
+    # ---- Linux fix helpers ----
+
+    @staticmethod
+    def _linux_fix_cmd(ntp_server: str) -> str:
+        """Return the shell command that fix() would run on Linux."""
+        if shutil.which("ntpdate"):
+            return f"sudo ntpdate {ntp_server}"
+        if shutil.which("sntp"):
+            return f"sudo sntp -sS {ntp_server}"
+        return "(install ntpdate or sntp, then re-run)"
+
+    # ---- SystemConfigurator interface ----
 
     def explanation(self) -> str | None:
         if self._offset is None:
             return None
-        self._offset * 1000
         system = platform.system()
         if system == "Linux":
-            cmd = "sudo timedatectl set-ntp true && sudo systemctl restart systemd-timesyncd"
+            cmd = self._linux_fix_cmd(self.NTP_SERVER)
         elif system == "Darwin":
-            cmd = "sudo sntp -sS pool.ntp.org"
+            cmd = f"sudo sntp -sS {self.NTP_SERVER}"
         else:
             cmd = "(manual NTP sync required for your platform)"
+        hint = ""
+        if system == "Linux" and not shutil.which("ntpdate") and not shutil.which("sntp"):
+            hint = "\n  Tip: install ntpdate (or enable systemd-timesyncd) for automatic sync"
         return (
             f"- Clock sync: local clock is off by {human_duration(self._offset)} "
             f"(threshold: ±{self.MAX_OFFSET_SECONDS * 1000:.0f} ms)\n"
-            f"  Fix: {cmd}"
+            f"  Fix: {cmd}{hint}"
         )
+
+    def _fix_linux(self) -> None:
+        """One-shot NTP sync: ntpdate > sntp > date -s fallback."""
+        if shutil.which("ntpdate"):
+            sudo_run("ntpdate", self.NTP_SERVER, check=True, text=True, capture_output=True)
+        elif shutil.which("sntp"):
+            sudo_run("sntp", "-sS", self.NTP_SERVER, check=True, text=True, capture_output=True)
+        elif self._offset is not None:
+            new_time = time.time() - self._offset
+            sudo_run("date", "-s", f"@{new_time:.3f}", check=True, text=True, capture_output=True)
 
     def fix(self) -> None:
         system = platform.system()
         if system == "Linux":
-            sudo_run(
-                "timedatectl",
-                "set-ntp",
-                "true",
-                check=True,
-                text=True,
-                capture_output=True,
-            )
-            sudo_run(
-                "systemctl",
-                "restart",
-                "systemd-timesyncd",
-                check=True,
-                text=True,
-                capture_output=True,
-            )
+            self._fix_linux()
         elif system == "Darwin":
-            sudo_run(
-                "sntp",
-                "-sS",
-                self.NTP_SERVER,
-                check=True,
-                text=True,
-                capture_output=True,
-            )
+            sudo_run("sntp", "-sS", self.NTP_SERVER, check=True, text=True, capture_output=True)
         else:
             print(f"[clock-sync] No automatic fix available for {system}")
