@@ -317,14 +317,14 @@ class TestMulticastConfiguratorMacOS:
 class TestBufferConfiguratorLinux:
     def test_check_returns_true_when_buffers_sufficient(self) -> None:
         configurator = BufferConfiguratorLinux()
-        with patch("dimos.protocol.service.system_configurator._read_sysctl_int") as mock_read:
+        with patch("dimos.protocol.service.system_configurator.lcm._read_sysctl_int") as mock_read:
             mock_read.return_value = IDEAL_RMEM_SIZE
             assert configurator.check() is True
             assert configurator.needs == []
 
     def test_check_returns_false_when_rmem_max_low(self) -> None:
         configurator = BufferConfiguratorLinux()
-        with patch("dimos.protocol.service.system_configurator._read_sysctl_int") as mock_read:
+        with patch("dimos.protocol.service.system_configurator.lcm._read_sysctl_int") as mock_read:
             mock_read.side_effect = [1048576, IDEAL_RMEM_SIZE]  # rmem_max low
             assert configurator.check() is False
             assert len(configurator.needs) == 1
@@ -332,7 +332,7 @@ class TestBufferConfiguratorLinux:
 
     def test_check_returns_false_when_both_low(self) -> None:
         configurator = BufferConfiguratorLinux()
-        with patch("dimos.protocol.service.system_configurator._read_sysctl_int") as mock_read:
+        with patch("dimos.protocol.service.system_configurator.lcm._read_sysctl_int") as mock_read:
             mock_read.return_value = 1048576  # Both low
             assert configurator.check() is False
             assert len(configurator.needs) == 2
@@ -347,7 +347,9 @@ class TestBufferConfiguratorLinux:
     def test_fix_writes_needed_values(self) -> None:
         configurator = BufferConfiguratorLinux()
         configurator.needs = [("net.core.rmem_max", IDEAL_RMEM_SIZE)]
-        with patch("dimos.protocol.service.system_configurator._write_sysctl_int") as mock_write:
+        with patch(
+            "dimos.protocol.service.system_configurator.lcm._write_sysctl_int"
+        ) as mock_write:
             configurator.fix()
             mock_write.assert_called_once_with("net.core.rmem_max", IDEAL_RMEM_SIZE)
 
@@ -358,7 +360,7 @@ class TestBufferConfiguratorLinux:
 class TestBufferConfiguratorMacOS:
     def test_check_returns_true_when_buffers_sufficient(self) -> None:
         configurator = BufferConfiguratorMacOS()
-        with patch("dimos.protocol.service.system_configurator._read_sysctl_int") as mock_read:
+        with patch("dimos.protocol.service.system_configurator.lcm._read_sysctl_int") as mock_read:
             mock_read.side_effect = [
                 BufferConfiguratorMacOS.TARGET_BUFFER_SIZE,
                 BufferConfiguratorMacOS.TARGET_RECVSPACE,
@@ -369,7 +371,7 @@ class TestBufferConfiguratorMacOS:
 
     def test_check_returns_false_when_values_low(self) -> None:
         configurator = BufferConfiguratorMacOS()
-        with patch("dimos.protocol.service.system_configurator._read_sysctl_int") as mock_read:
+        with patch("dimos.protocol.service.system_configurator.lcm._read_sysctl_int") as mock_read:
             mock_read.return_value = 1024  # All low
             assert configurator.check() is False
             assert len(configurator.needs) == 3
@@ -387,7 +389,9 @@ class TestBufferConfiguratorMacOS:
         configurator.needs = [
             ("kern.ipc.maxsockbuf", BufferConfiguratorMacOS.TARGET_BUFFER_SIZE),
         ]
-        with patch("dimos.protocol.service.system_configurator._write_sysctl_int") as mock_write:
+        with patch(
+            "dimos.protocol.service.system_configurator.lcm._write_sysctl_int"
+        ) as mock_write:
             configurator.fix()
             mock_write.assert_called_once_with(
                 "kern.ipc.maxsockbuf", BufferConfiguratorMacOS.TARGET_BUFFER_SIZE
@@ -536,7 +540,8 @@ class TestClockSyncConfigurator:
         configurator = ClockSyncConfigurator()
         configurator._offset = 0.5  # 500ms
         with patch(
-            "dimos.protocol.service.system_configurator.platform.system", return_value="Linux"
+            "dimos.protocol.service.system_configurator.clock_sync.platform.system",
+            return_value="Linux",
         ):
             explanation = configurator.explanation()
             assert explanation is not None
@@ -548,7 +553,8 @@ class TestClockSyncConfigurator:
         configurator = ClockSyncConfigurator()
         configurator._offset = -0.3  # -300ms
         with patch(
-            "dimos.protocol.service.system_configurator.platform.system", return_value="Darwin"
+            "dimos.protocol.service.system_configurator.clock_sync.platform.system",
+            return_value="Darwin",
         ):
             explanation = configurator.explanation()
             assert explanation is not None
@@ -564,7 +570,8 @@ class TestClockSyncConfigurator:
         _is_root_user.cache_clear()
         configurator = ClockSyncConfigurator()
         with patch(
-            "dimos.protocol.service.system_configurator.platform.system", return_value="Linux"
+            "dimos.protocol.service.system_configurator.clock_sync.platform.system",
+            return_value="Linux",
         ):
             with patch("os.geteuid", return_value=0):
                 with patch("subprocess.run") as mock_run:
@@ -580,7 +587,8 @@ class TestClockSyncConfigurator:
         _is_root_user.cache_clear()
         configurator = ClockSyncConfigurator()
         with patch(
-            "dimos.protocol.service.system_configurator.platform.system", return_value="Darwin"
+            "dimos.protocol.service.system_configurator.clock_sync.platform.system",
+            return_value="Darwin",
         ):
             with patch("os.geteuid", return_value=0):
                 with patch("subprocess.run") as mock_run:
