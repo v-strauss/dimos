@@ -96,6 +96,8 @@ def get_loop() -> tuple[asyncio.AbstractEventLoop, threading.Thread | None]:
 
 
 class ModuleConfig(BaseModel):
+    model_config = {"arbitrary_types_allowed": True}
+
     rpc_transport: type[RPCSpec] = LCMRPC
     tf_transport: type[TFSpec] = LCMTF
     frame_id_prefix: str | None = None

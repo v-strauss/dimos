@@ -16,7 +16,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import threading
 import time
 from typing import TYPE_CHECKING, Any
@@ -34,7 +33,6 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-@dataclass(kw_only=True)
 class SimulationModuleConfig(ModuleConfig):
     engine: EngineType
     config_path: Path | Callable[[], Path]

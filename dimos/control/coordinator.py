@@ -97,7 +97,6 @@ class TaskConfig:
     hand: str = ""  # teleop_ik only: "left" or "right" controller
 
 
-@dataclass
 class ControlCoordinatorConfig(ModuleConfig):
     """Configuration for the ControlCoordinator.
 
