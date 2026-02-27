@@ -367,9 +367,20 @@ class FastAPIServer(EdgeIO):
         certs_dir.mkdir(parents=True, exist_ok=True)
         result = subprocess.run(
             [
-                "openssl", "req", "-x509", "-newkey", "rsa:2048",
-                "-keyout", str(key_path), "-out", str(cert_path),
-                "-days", "365", "-nodes", "-subj", "/CN=localhost",
+                "openssl",
+                "req",
+                "-x509",
+                "-newkey",
+                "rsa:2048",
+                "-keyout",
+                str(key_path),
+                "-out",
+                str(cert_path),
+                "-days",
+                "365",
+                "-nodes",
+                "-subj",
+                "/CN=localhost",
             ],
             capture_output=True,
         )
