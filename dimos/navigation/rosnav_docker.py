@@ -22,8 +22,11 @@ from dataclasses import dataclass, field
 import logging
 from pathlib import Path
 import shutil
+import struct
 import threading
 import time
+
+import numpy as np
 
 # ROS message imports: available inside the ROS2 container, but may be missing on the host
 try:  # pragma: no cover - import-time environment dependent
@@ -59,7 +62,6 @@ except ModuleNotFoundError:
     ROSInt8 = _Stub  # type: ignore[assignment]
     ROSTFMessage = _Stub  # type: ignore[assignment]
 
-from reactivex import operators as ops
 from reactivex.subject import Subject
 
 from dimos import spec
@@ -82,6 +84,12 @@ from dimos.utils.logging_config import setup_logger
 from dimos.utils.transform_utils import euler_to_quaternion
 
 logger = setup_logger(level=logging.INFO)
+
+
+# ---------------------------------------------------------------------------
+# ROS → DimOS message conversion shims
+# These replace the removed from_ros_msg classmethods on the message types.
+# ---------------------------------------------------------------------------
 
 
 @dataclass
@@ -121,7 +129,7 @@ class ROSNavConfig(DockerModuleConfig):
     #   "hardware"    — system_real_robot[_with_route_planner].launch.py
     #   "bagfile"     — system_bagfile[_with_route_planner].launch.py + use_sim_time
     # Setting bagfile_path automatically forces mode to "bagfile".
-    mode: str = "hardware"
+    mode: str = "simulation"
     bagfile_path: str = ""  # container-side path to bag; plays with --clock
 
     def __post_init__(self) -> None:
@@ -238,25 +246,25 @@ class ROSNav(
     def start(self) -> None:
         self._running = True
 
-        self._disposables.add(
-            self._local_pointcloud_subject.pipe(
-                ops.sample(1.0 / self.config.local_pointcloud_freq),  # Sample at desired frequency
-                ops.map(lambda msg: PointCloud2.from_ros_msg(msg)),  # type: ignore[arg-type]
-            ).subscribe(
-                on_next=self.pointcloud.publish,
-                on_error=lambda e: logger.error(f"Lidar stream error: {e}"),
-            )
-        )
+        # self._disposables.add(
+        #     self._local_pointcloud_subject.pipe(
+        #         ops.sample(1.0 / self.config.local_pointcloud_freq),
+        #         ops.map(lambda msg: _pc2_from_ros(msg)),  # type: ignore[arg-type]
+        #     ).subscribe(
+        #         on_next=self.pointcloud.publish,
+        #         on_error=lambda e: logger.error(f"Lidar stream error: {e}"),
+        #     )
+        # )
 
-        self._disposables.add(
-            self._global_pointcloud_subject.pipe(
-                ops.sample(1.0 / self.config.global_map_freq),  # Sample at desired frequency
-                ops.map(lambda msg: PointCloud2.from_ros_msg(msg)),  # type: ignore[arg-type]
-            ).subscribe(
-                on_next=self.global_pointcloud.publish,
-                on_error=lambda e: logger.error(f"Map stream error: {e}"),
-            )
-        )
+        # self._disposables.add(
+        #     self._global_pointcloud_subject.pipe(
+        #         ops.sample(1.0 / self.config.global_map_freq),
+        #         ops.map(lambda msg: _pc2_from_ros(msg)),  # type: ignore[arg-type]
+        #     ).subscribe(
+        #         on_next=self.global_pointcloud.publish,
+        #         on_error=lambda e: logger.error(f"Map stream error: {e}"),
+        #     )
+        # )
 
         # Create and start the spin thread for ROS2 node spinning
         self._spin_thread = threading.Thread(
@@ -264,7 +272,8 @@ class ROSNav(
         )
         self._spin_thread.start()
 
-        self.goal_req.subscribe(self._on_goal_pose)
+        # if self.goal_req:
+        #     self.goal_req.subscribe(self._on_goal_pose)
         logger.info("NavigationModule started with ROS2 spinning and RxPY streams")
 
     def _spin_node(self) -> None:
@@ -294,7 +303,7 @@ class ROSNav(
         self.goal_active.publish(dimos_pose)
 
     def _on_ros_cmd_vel(self, msg: ROSTwistStamped) -> None:
-        self.cmd_vel.publish(Twist.from_ros_msg(msg.twist))
+        self.cmd_vel.publish(_twist_from_ros(msg.twist))
 
     def _on_ros_registered_scan(self, msg: ROSPointCloud2) -> None:
         self._local_pointcloud_subject.on_next(msg)
@@ -303,12 +312,12 @@ class ROSNav(
         self._global_pointcloud_subject.on_next(msg)
 
     def _on_ros_path(self, msg: ROSPath) -> None:
-        dimos_path = NavPath.from_ros_msg(msg)
+        dimos_path = _path_from_ros(msg)
         dimos_path.frame_id = "base_link"
         self.path_active.publish(dimos_path)
 
     def _on_ros_tf(self, msg: ROSTFMessage) -> None:
-        ros_tf = TFMessage.from_ros_msg(msg)
+        ros_tf = _tfmessage_from_ros(msg)
 
         map_to_world_tf = Transform(
             translation=Vector3(0.0, 0.0, 0.0),
@@ -557,6 +566,96 @@ def deploy(dimos: DimosCluster):  # type: ignore[no-untyped-def]
 
     nav.start()
     return nav
+
+
+def _pc2_from_ros(msg: "ROSPointCloud2") -> PointCloud2:
+    """Convert a ROS2 sensor_msgs/PointCloud2 to a DimOS PointCloud2."""
+    ts = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
+    frame_id = msg.header.frame_id
+
+    if msg.width == 0 or msg.height == 0:
+        return PointCloud2(frame_id=frame_id, ts=ts)
+
+    x_off = y_off = z_off = None
+    for f in msg.fields:
+        if f.name == "x":
+            x_off = f.offset
+        elif f.name == "y":
+            y_off = f.offset
+        elif f.name == "z":
+            z_off = f.offset
+
+    if any(o is None for o in [x_off, y_off, z_off]):
+        raise ValueError("ROS PointCloud2 missing x/y/z fields")
+
+    num_points = msg.width * msg.height
+    raw = bytes(msg.data)
+    step = msg.point_step
+
+    # Fast path: standard x/y/z layout at offsets 0/4/8
+    if x_off == 0 and y_off == 4 and z_off == 8 and step >= 12:
+        if step == 12:
+            points = np.frombuffer(raw, dtype=np.float32).reshape(-1, 3)
+        else:
+            dt = np.dtype([("x", "<f4"), ("y", "<f4"), ("z", "<f4"), ("_pad", f"V{step - 12}")])
+            s = np.frombuffer(raw, dtype=dt, count=num_points)
+            points = np.column_stack((s["x"], s["y"], s["z"]))
+    else:
+        points = np.zeros((num_points, 3), dtype=np.float32)
+        for i in range(num_points):
+            base = i * step
+            points[i, 0] = struct.unpack("<f", raw[base + x_off : base + x_off + 4])[0]
+            points[i, 1] = struct.unpack("<f", raw[base + y_off : base + y_off + 4])[0]
+            points[i, 2] = struct.unpack("<f", raw[base + z_off : base + z_off + 4])[0]
+
+    return PointCloud2.from_numpy(points, frame_id=frame_id, timestamp=ts)
+
+
+def _twist_from_ros(msg: "ROSTwistStamped") -> Twist:
+    """Convert a ROS2 geometry_msgs/Twist (the .twist field of TwistStamped) to DimOS Twist."""
+    return Twist(
+        linear=Vector3(msg.linear.x, msg.linear.y, msg.linear.z),
+        angular=Vector3(msg.angular.x, msg.angular.y, msg.angular.z),
+    )
+
+
+def _path_from_ros(msg: "ROSPath") -> NavPath:
+    """Convert a ROS2 nav_msgs/Path to a DimOS Path."""
+    ts = msg.header.stamp.sec + msg.header.stamp.nanosec / 1e9
+    frame_id = msg.header.frame_id
+    poses = []
+    for ps in msg.poses:
+        pose_ts = ps.header.stamp.sec + ps.header.stamp.nanosec / 1e9
+        p = ps.pose.position
+        o = ps.pose.orientation
+        poses.append(
+            PoseStamped(
+                ts=pose_ts,
+                frame_id=ps.header.frame_id or frame_id,
+                position=Vector3(p.x, p.y, p.z),
+                orientation=Quaternion(o.x, o.y, o.z, o.w),
+            )
+        )
+    return NavPath(ts=ts, frame_id=frame_id, poses=poses)
+
+
+def _tfmessage_from_ros(msg: "ROSTFMessage") -> TFMessage:
+    """Convert a ROS2 tf2_msgs/TFMessage to a DimOS TFMessage."""
+    transforms = []
+    for ts_msg in msg.transforms:
+        ts = ts_msg.header.stamp.sec + ts_msg.header.stamp.nanosec / 1e9
+        t = ts_msg.transform.translation
+        r = ts_msg.transform.rotation
+        transforms.append(
+            Transform(
+                translation=Vector3(t.x, t.y, t.z),
+                rotation=Quaternion(r.x, r.y, r.z, r.w),
+                frame_id=ts_msg.header.frame_id,
+                child_frame_id=ts_msg.child_frame_id,
+                ts=ts,
+            )
+        )
+    return TFMessage(*transforms)
 
 
 __all__ = ["ROSNav", "deploy", "ros_nav"]
