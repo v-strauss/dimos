@@ -66,7 +66,6 @@ class FastAPIServer(EdgeIO):
         audio_subject=None,
         **streams,
     ) -> None:
-        print("Starting FastAPIServer initialization...")  # Debug print
         super().__init__(dev_name, edge_type)
         self.app = FastAPI()
         self._server: uvicorn.Server | None = None
@@ -120,9 +119,7 @@ class FastAPIServer(EdgeIO):
                 self.text_disposables[key] = disposable
                 self.disposables.add(disposable)
 
-        print("Setting up routes...")  # Debug print
         self.setup_routes()
-        print("FastAPIServer initialization complete")  # Debug print
 
     def process_frame_fastapi(self, frame):  # type: ignore[no-untyped-def]
         """Convert frame to JPEG format for streaming."""
