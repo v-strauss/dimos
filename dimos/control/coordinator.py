@@ -25,11 +25,12 @@ Features:
 - Aggregated preemption notifications
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 import threading
 import time
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from dimos.control.components import (
     TWIST_SUFFIX_MAP,
@@ -62,10 +63,6 @@ from dimos.teleop.quest.quest_types import (
     Buttons,
 )
 from dimos.utils.logging_config import setup_logger
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-    from pathlib import Path
 
 logger = setup_logger()
 
