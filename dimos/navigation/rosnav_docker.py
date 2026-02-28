@@ -67,8 +67,12 @@ from reactivex.subject import Subject
 
 from dimos import spec
 from dimos.agents.annotation import skill
-from dimos.core import DimosCluster, In, LCMTransport, Module, Out, pSHMTransport, rpc
+from dimos.core.core import rpc
 from dimos.core.docker_runner import DockerModuleConfig
+from dimos.core.module import Module
+from dimos.core.module_coordinator import ModuleCoordinator
+from dimos.core.stream import In, Out
+from dimos.core.transport import LCMTransport
 from dimos.msgs.geometry_msgs import (
     PoseStamped,
     Quaternion,
@@ -630,11 +634,12 @@ class ROSNav(
 ros_nav = ROSNav.blueprint
 
 
-def deploy(dimos: DimosCluster):  # type: ignore[no-untyped-def]
+def deploy(dimos: ModuleCoordinator):  # type: ignore[no-untyped-def]
     nav = dimos.deploy(ROSNav)  # type: ignore[attr-defined]
 
-    nav.pointcloud.transport = pSHMTransport("/lidar")
-    nav.global_pointcloud.transport = pSHMTransport("/map")
+    # Existing ports on LCM transports
+    nav.pointcloud.transport = LCMTransport("/lidar", PointCloud2)
+    nav.global_pointcloud.transport = LCMTransport("/map", PointCloud2)
     nav.goal_req.transport = LCMTransport("/goal_req", PoseStamped)
     nav.goal_active.transport = LCMTransport("/goal_active", PoseStamped)
     nav.path_active.transport = LCMTransport("/path_active", NavPath)
