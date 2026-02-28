@@ -40,7 +40,7 @@ from dimos.control.components import (
     JointName,
     TaskName,
 )
-from dimos.control.hardware_interface import ConnectedHardware, ConnectedTwistBase
+from dimos.control.hardware_interface import ConnectedHardware, ConnectedQuadruped, ConnectedTwistBase
 from dimos.control.task import ControlTask
 from dimos.control.tick_loop import TickLoop
 from dimos.core import In, Module, Out, rpc
@@ -174,7 +174,7 @@ class ControlCoordinator(Module[ControlCoordinatorConfig]):
         super().__init__(*args, **kwargs)
 
         # Connected hardware (keyed by hardware_id)
-        self._hardware: dict[HardwareId, ConnectedHardware] = {}
+        self._hardware: dict[HardwareId, ConnectedHardware | ConnectedQuadruped] = {}
         self._hardware_lock = threading.Lock()
 
         # Joint -> hardware mapping (built when hardware added)
@@ -224,7 +224,9 @@ class ControlCoordinator(Module[ControlCoordinatorConfig]):
     def _setup_hardware(self, component: HardwareComponent) -> None:
         """Connect and add a single hardware adapter."""
         adapter: ManipulatorAdapter | TwistBaseAdapter
-        if component.hardware_type == HardwareType.BASE:
+        if component.hardware_type == HardwareType.QUADRUPED:
+            adapter = self._create_quadruped_adapter(component)
+        elif component.hardware_type == HardwareType.BASE:
             adapter = self._create_twist_base_adapter(component)
         else:
             adapter = self._create_adapter(component)
@@ -259,6 +261,15 @@ class ControlCoordinator(Module[ControlCoordinatorConfig]):
             component.adapter_type,
             dof=len(component.joints),
             address=component.address,
+        )
+
+    def _create_quadruped_adapter(self, component: HardwareComponent) -> object:
+        """Create a quadruped adapter from component config."""
+        from dimos.hardware.quadrupeds.registry import quadruped_adapter_registry
+
+        return quadruped_adapter_registry.create(
+            component.adapter_type,
+            network_interface=int(component.address) if component.address else 0,
         )
 
     def _create_task_from_config(self, cfg: TaskConfig) -> ControlTask:
@@ -341,12 +352,23 @@ class ControlCoordinator(Module[ControlCoordinatorConfig]):
     @rpc
     def add_hardware(
         self,
-        adapter: ManipulatorAdapter | TwistBaseAdapter,
+        adapter: ManipulatorAdapter | TwistBaseAdapter | object,
         component: HardwareComponent,
     ) -> bool:
         """Register a hardware adapter with the coordinator."""
+        from dimos.hardware.quadrupeds.spec import QuadrupedAdapter
+
         is_base = component.hardware_type == HardwareType.BASE
-        if is_base != isinstance(adapter, TwistBaseAdapter):
+        is_quadruped = component.hardware_type == HardwareType.QUADRUPED
+
+        if is_base and not isinstance(adapter, TwistBaseAdapter):
+            raise TypeError(
+                f"Hardware type / adapter mismatch for '{component.hardware_id}': "
+                f"hardware_type={component.hardware_type.value} but got "
+                f"{type(adapter).__name__}"
+            )
+
+        if is_quadruped and not isinstance(adapter, QuadrupedAdapter):
             raise TypeError(
                 f"Hardware type / adapter mismatch for '{component.hardware_id}': "
                 f"hardware_type={component.hardware_type.value} but got "
@@ -358,8 +380,13 @@ class ControlCoordinator(Module[ControlCoordinatorConfig]):
                 logger.warning(f"Hardware {component.hardware_id} already registered")
                 return False
 
-            if isinstance(adapter, TwistBaseAdapter):
-                connected: ConnectedHardware = ConnectedTwistBase(
+            if isinstance(adapter, QuadrupedAdapter):
+                connected: ConnectedHardware | ConnectedQuadruped = ConnectedQuadruped(
+                    adapter=adapter,
+                    component=component,
+                )
+            elif isinstance(adapter, TwistBaseAdapter):
+                connected = ConnectedTwistBase(
                     adapter=adapter,
                     component=component,
                 )
