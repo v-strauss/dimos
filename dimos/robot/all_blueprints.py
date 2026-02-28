@@ -107,6 +107,7 @@ all_modules = {
     "g1-sim-connection": "dimos.robot.unitree.g1.sim",
     "g1-skills": "dimos.robot.unitree.g1.skill_container",
     "go2-connection": "dimos.robot.unitree.go2.connection",
+    "go2-low-level-control": "dimos.control.examples.go2_standup",
     "google-maps-skill": "dimos.agents.skills.google_maps_skill_container",
     "gps-nav-skill": "dimos.agents.skills.gps_nav_skill",
     "grasping-module": "dimos.manipulation.grasping.grasping",
