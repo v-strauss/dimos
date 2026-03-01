@@ -91,9 +91,17 @@ def main() -> None:
     # Configure global config
     if args.simulation:
         global_config.update(simulation=True)
-        global_config.update(viewer_backend="rerun")
+    global_config.update(viewer_backend="rerun")
     if args.robot_ip:
         global_config.update(robot_ip=args.robot_ip)
+
+    # Initialize rerun and connect to custom viewer BEFORE building blueprint.
+    # This must happen before coordinator.start() so the bridge's rr.init("dimos")
+    # finds an active sink and doesn't disable rerun.
+    print(f"Connecting to custom Rerun viewer at {args.viewer_url}...")
+    rr.init("dimos")
+    rr.connect_grpc(args.viewer_url)
+    print("Connected to viewer.")
 
     print("Building blueprint...")
     with_vis = autoconnect(_transports_base, rerun_bridge(**_rerun_config()))
@@ -119,11 +127,6 @@ def main() -> None:
 
     print("Starting modules...")
     coordinator.start()
-
-    # Connect to the custom viewer's gRPC endpoint
-    print(f"Connecting to custom Rerun viewer at {args.viewer_url}...")
-    rr.connect_grpc(args.viewer_url)
-    print("Connected!")
     print()
     print("Click on entities in the Rerun viewer to send navigation goals.")
     print("Press Ctrl+C to stop.")
