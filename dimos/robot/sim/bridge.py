@@ -1,3 +1,17 @@
+# Copyright 2026 Dimensional Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """NativeModule wrapper for the DimSim bridge subprocess.
 
 Launches the DimSim bridge (Deno CLI) as a managed subprocess.  The bridge
@@ -15,16 +29,19 @@ Usage::
 
 from __future__ import annotations
 
-import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
+import shutil
+from typing import TYPE_CHECKING
 
 from dimos import spec
-from dimos.core import In, Out
 from dimos.core.native_module import NativeModule, NativeModuleConfig
-from dimos.msgs.geometry_msgs import PoseStamped, Twist
-from dimos.msgs.sensor_msgs import CameraInfo, Image, PointCloud2
 from dimos.utils.logging_config import setup_logger
+
+if TYPE_CHECKING:
+    from dimos.core import In, Out
+    from dimos.msgs.geometry_msgs import PoseStamped, Twist
+    from dimos.msgs.sensor_msgs import CameraInfo, Image, PointCloud2
 
 logger = setup_logger()
 
@@ -117,7 +134,9 @@ class DimSimBridge(NativeModule, spec.Camera, spec.Pointcloud):
 
         self.config.executable = _find_deno()
         self.config.extra_args = [
-            "run", "--allow-all", "--unstable-net",
+            "run",
+            "--allow-all",
+            "--unstable-net",
             cli_ts,
             *dev_args,
         ]
