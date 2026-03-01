@@ -18,7 +18,8 @@ import time
 
 from dimos_lcm.geometry_msgs import Point as LCMPoint
 
-from dimos.msgs.geometry_msgs.PointStamped import Point, PointStamped
+from dimos.msgs.geometry_msgs.Point import Point
+from dimos.msgs.geometry_msgs.PointStamped import PointStamped
 
 
 def test_point_inherits_lcm() -> None:

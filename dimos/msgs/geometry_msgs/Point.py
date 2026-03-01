@@ -17,7 +17,7 @@ from __future__ import annotations
 from dimos_lcm.geometry_msgs import Point as LCMPoint
 
 
-class Point(LCMPoint):
+class Point(LCMPoint):  # type: ignore[misc]
     """DimOS wrapper for geometry_msgs.Point (3D position).
 
     Inherits x/y/z from LCMPoint. Wire-identical to Vector3 but

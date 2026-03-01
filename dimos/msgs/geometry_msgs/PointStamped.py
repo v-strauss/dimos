@@ -20,6 +20,8 @@ from typing import TYPE_CHECKING, BinaryIO
 if TYPE_CHECKING:
     from rerun._baseclasses import Archetype
 
+    from dimos.msgs.geometry_msgs.PoseStamped import PoseStamped
+
 from dimos_lcm.geometry_msgs import PointStamped as LCMPointStamped
 
 from dimos.msgs.geometry_msgs.Point import Point
