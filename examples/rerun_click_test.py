@@ -19,8 +19,8 @@ Usage:
     1. Start the custom rerun viewer (with LCM click support):
        ./target/release/custom_callback_viewer
 
-    2. Run this script:
-       uv run python examples/rerun_click_test.py
+    2. Run this script (simulation mode):
+       uv run python examples/rerun_click_test.py --simulation
 
     3. Click on entities in the Rerun viewer → robot navigates to click position.
 
@@ -31,13 +31,16 @@ This script runs the Go2 smart blueprint with viewer_mode="none" (no
 built-in viewer) and connects to the custom viewer's gRPC endpoint.
 """
 
+import argparse
 import signal
 import sys
 import time
+from typing import Any
 
 import rerun as rr
 
 from dimos.core.blueprints import autoconnect
+from dimos.core.global_config import global_config
 from dimos.core.transport import LCMTransport
 from dimos.mapping.costmapper import cost_mapper
 from dimos.mapping.voxels import voxel_mapper
@@ -57,51 +60,72 @@ from dimos.web.websocket_vis.websocket_vis_module import websocket_vis
 
 CUSTOM_VIEWER_URL = "rerun+http://127.0.0.1:9877/proxy"
 
-rerun_config = {
-    "pubsubs": [LCM(autoconf=True)],
-    "viewer_mode": "none",  # don't spawn viewer — we use the custom one
-    "visual_override": {
-        "world/camera_info": _convert_camera_info,
-        "world/global_map": _convert_global_map,
-        "world/navigation_costmap": _convert_navigation_costmap,
-    },
-    "static": {
-        "world/tf/base_link": _static_base_link,
-    },
-}
 
-# Build the blueprint: basic Go2 + nav + click-to-nav transport
-with_vis = autoconnect(_transports_base, rerun_bridge(**rerun_config))
-
-blueprint = (
-    autoconnect(
-        with_vis,
-        go2_connection(),
-        websocket_vis(),
-        voxel_mapper(voxel_size=0.1),
-        cost_mapper(),
-        replanning_a_star_planner(),
-    )
-    .transports(
-        {
-            ("clicked_point", PointStamped): LCMTransport("/clicked_point", PointStamped),
-        }
-    )
-    .global_config(n_workers=6, robot_model="unitree_go2")
-)
+def _rerun_config() -> dict[str, Any]:
+    return {
+        "pubsubs": [LCM(autoconf=True)],
+        "viewer_mode": "none",  # don't spawn viewer — we use the custom one
+        "visual_override": {
+            "world/camera_info": _convert_camera_info,
+            "world/global_map": _convert_global_map,
+            "world/navigation_costmap": _convert_navigation_costmap,
+        },
+        "static": {
+            "world/tf/base_link": _static_base_link,
+        },
+    }
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Rerun click-to-navigate test")
+    parser.add_argument("--simulation", action="store_true", help="Run in simulation (mujoco)")
+    parser.add_argument("--robot-ip", type=str, default=None, help="Robot IP (for real hardware)")
+    parser.add_argument(
+        "--viewer-url",
+        type=str,
+        default=CUSTOM_VIEWER_URL,
+        help="Custom viewer gRPC URL",
+    )
+    args = parser.parse_args()
+
+    # Configure global config
+    if args.simulation:
+        global_config.update(simulation=True)
+        global_config.update(viewer_backend="rerun")
+    if args.robot_ip:
+        global_config.update(robot_ip=args.robot_ip)
+
     print("Building blueprint...")
+    with_vis = autoconnect(_transports_base, rerun_bridge(**_rerun_config()))
+
+    blueprint = (
+        autoconnect(
+            with_vis,
+            go2_connection(),
+            websocket_vis(),
+            voxel_mapper(voxel_size=0.1),
+            cost_mapper(),
+            replanning_a_star_planner(),
+        )
+        .transports(
+            {
+                ("clicked_point", PointStamped): LCMTransport("/clicked_point", PointStamped),
+            }
+        )
+        .global_config(n_workers=6, robot_model="unitree_go2")
+    )
+
     coordinator = blueprint.build()
 
     print("Starting modules...")
     coordinator.start()
 
     # Connect to the custom viewer's gRPC endpoint
-    print(f"Connecting to custom Rerun viewer at {CUSTOM_VIEWER_URL}...")
-    rr.connect_grpc(CUSTOM_VIEWER_URL)
-    print("Connected! Click on entities in the Rerun viewer to send navigation goals.")
+    print(f"Connecting to custom Rerun viewer at {args.viewer_url}...")
+    rr.connect_grpc(args.viewer_url)
+    print("Connected!")
+    print()
+    print("Click on entities in the Rerun viewer to send navigation goals.")
     print("Press Ctrl+C to stop.")
 
     def shutdown(*_: object) -> None:
