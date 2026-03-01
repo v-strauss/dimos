@@ -79,8 +79,4 @@ rerun_click_test = (
 )
 
 if __name__ == "__main__":
-    coordinator = rerun_click_test.build()
-    coordinator.start()
-    import signal
-
-    signal.pause()
+    rerun_click_test.build().loop()
