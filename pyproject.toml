@@ -163,7 +163,8 @@ perception = [
 
 unitree = [
     "dimos[base]",
-    "unitree-webrtc-connect-leshy>=2.0.7"
+    "unitree-webrtc-connect-leshy>=2.0.7",
+    "unitree-sdk2py-dimos>=1.0.2",
 ]
 
 manipulation = [
@@ -396,6 +397,9 @@ env = [
 addopts = "-v -r a -p no:warnings --color=yes -m 'not (tool or slow or mujoco)'"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.uv.sources]
+unitree-sdk2py-dimos = { path = "unitree_sdk2_python", editable = true }
 
 [tool.largefiles]
 max_size_kb = 50

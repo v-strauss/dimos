@@ -1954,6 +1954,7 @@ unitree = [
     { name = "sse-starlette" },
     { name = "transformers", extra = ["torch"] },
     { name = "ultralytics" },
+    { name = "unitree-sdk2py-dimos" },
     { name = "unitree-webrtc-connect-leshy" },
     { name = "uvicorn" },
 ]
@@ -2117,6 +2118,7 @@ requires-dist = [
     { name = "types-tensorflow", marker = "extra == 'dev'", specifier = ">=2.18.0.20251008,<3" },
     { name = "types-tqdm", marker = "extra == 'dev'", specifier = ">=4.67.0.20250809,<5" },
     { name = "ultralytics", marker = "extra == 'perception'", specifier = ">=8.3.70" },
+    { name = "unitree-sdk2py-dimos", marker = "extra == 'unitree'", editable = "unitree_sdk2_python" },
     { name = "unitree-webrtc-connect-leshy", marker = "extra == 'unitree'", specifier = ">=2.0.7" },
     { name = "uvicorn", marker = "extra == 'web'", specifier = ">=0.34.0" },
     { name = "watchdog", marker = "extra == 'dev'", specifier = ">=3.0.0" },
@@ -10101,6 +10103,24 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/1f/63/21a32e1facfeee245dbdfb7b4669faf7a36ff7c00b50987932bdab126f4b/ultralytics_thop-2.0.18.tar.gz", hash = "sha256:21103bcd39cc9928477dc3d9374561749b66a1781b35f46256c8d8c4ac01d9cf", size = 34557, upload-time = "2025-10-29T16:58:13.526Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7f/c7/fb42228bb05473d248c110218ffb8b1ad2f76728ed8699856e5af21112ad/ultralytics_thop-2.0.18-py3-none-any.whl", hash = "sha256:2bb44851ad224b116c3995b02dd5e474a5ccf00acf237fe0edb9e1506ede04ec", size = 28941, upload-time = "2025-10-29T16:58:12.093Z" },
+]
+
+[[package]]
+name = "unitree-sdk2py-dimos"
+version = "1.0.2"
+source = { editable = "unitree_sdk2_python" }
+dependencies = [
+    { name = "cyclonedds" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "numpy", version = "2.3.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "opencv-python" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "cyclonedds", specifier = ">=0.10.2" },
+    { name = "numpy" },
+    { name = "opencv-python" },
 ]
 
 [[package]]
