@@ -22,20 +22,21 @@ Usage:
     2. Run this script (simulation mode):
        uv run python examples/rerun_click_test.py --simulation
 
+    Or replay mode (no robot, headless):
+       uv run python examples/rerun_click_test.py --replay
+
     3. Click on entities in the Rerun viewer → robot navigates to click position.
 
 The custom viewer listens on gRPC port 9877 and publishes PointStamped
 clicks to /clicked_point via LCM UDP multicast.
-
-This script uses the standard Go2 smart blueprint but overrides the
-viewer_backend to avoid the built-in rerun bridge (which would spawn
-its own viewer). Instead it connects to the custom viewer externally.
 """
 
 import argparse
 import signal
 import sys
 import time
+
+import rerun as rr
 
 from dimos.core.blueprints import autoconnect
 from dimos.core.global_config import global_config
@@ -55,6 +56,7 @@ CUSTOM_VIEWER_URL = "rerun+http://127.0.0.1:9877/proxy"
 def main() -> None:
     parser = argparse.ArgumentParser(description="Rerun click-to-navigate test")
     parser.add_argument("--simulation", action="store_true", help="Run in simulation (mujoco)")
+    parser.add_argument("--replay", action="store_true", help="Run in replay mode (no robot)")
     parser.add_argument("--robot-ip", type=str, default=None, help="Robot IP (for real hardware)")
     parser.add_argument(
         "--viewer-url",
@@ -64,27 +66,25 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    # Configure global config BEFORE any imports that read it
+    # Configure global config
     if args.simulation:
         global_config.update(simulation=True)
+    if args.replay:
+        global_config.update(replay=True)
+    global_config.update(viewer_backend="rerun")
     if args.robot_ip:
         global_config.update(robot_ip=args.robot_ip)
 
-    # Use the rerun bridge with viewer_mode="native" but point it at
-    # our custom viewer's gRPC port via RERUN_CONNECT_ADDR env var.
-    # This way the bridge handles rr.init + rr.spawn normally, but
-    # spawn connects to our already-running custom viewer.
-    #
-    # Actually, rr.spawn starts a NEW viewer process. We don't want that.
-    # Instead: use "none" mode and call connect_grpc AFTER bridge.start().
-    global_config.update(viewer_backend="rerun")
-
-    rerun_config = {
-        "pubsubs": [LCM(autoconf=True)],
-        "viewer_mode": "none",
-    }
+    # Initialize rerun in the MAIN process and connect to the custom viewer.
+    # The bridge runs in a worker subprocess via multiprocessing, so its
+    # rr.init() only affects that subprocess. We need our own rr.init() +
+    # connect_grpc() in the main process for rr.log() calls to reach the viewer.
+    rr.init("dimos")
+    rr.connect_grpc(args.viewer_url)
+    print(f"Connected to custom Rerun viewer at {args.viewer_url}")
 
     print("Building blueprint...")
+    rerun_config = {"pubsubs": [LCM(autoconf=True)], "viewer_mode": "none"}
     with_vis = autoconnect(rerun_bridge(**rerun_config))
 
     blueprint = (
@@ -108,21 +108,6 @@ def main() -> None:
 
     print("Starting modules...")
     coordinator.start()
-
-    # Connect to the custom viewer AFTER coordinator.start() so that
-    # rr.init("dimos") from the bridge has already run. This adds our
-    # gRPC sink to the existing recording stream.
-    import rerun as rr
-
-    print(f"Connecting to custom Rerun viewer at {args.viewer_url}...")
-    rr.connect_grpc(args.viewer_url)
-
-    if not rr.is_enabled():
-        print("WARNING: Rerun is disabled. Data won't reach the viewer.")
-        print("Try: rr.init('dimos') manually before this point.")
-    else:
-        print("Connected!")
-
     print()
     print("Click on entities in the Rerun viewer to send navigation goals.")
     print("Press Ctrl+C to stop.")
