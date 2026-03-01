@@ -27,17 +27,15 @@ Usage:
 The custom viewer listens on gRPC port 9877 and publishes PointStamped
 clicks to /clicked_point via LCM UDP multicast.
 
-This script runs the Go2 smart blueprint with viewer_mode="none" (no
-built-in viewer) and connects to the custom viewer's gRPC endpoint.
+This script uses the standard Go2 smart blueprint but overrides the
+viewer_backend to avoid the built-in rerun bridge (which would spawn
+its own viewer). Instead it connects to the custom viewer externally.
 """
 
 import argparse
 import signal
 import sys
 import time
-from typing import Any
-
-import rerun as rr
 
 from dimos.core.blueprints import autoconnect
 from dimos.core.global_config import global_config
@@ -47,33 +45,11 @@ from dimos.mapping.voxels import voxel_mapper
 from dimos.msgs.geometry_msgs import PointStamped
 from dimos.navigation.replanning_a_star.module import replanning_a_star_planner
 from dimos.protocol.pubsub.impl.lcmpubsub import LCM
-from dimos.robot.unitree.go2.blueprints.basic.unitree_go2_basic import (
-    _convert_camera_info,
-    _convert_global_map,
-    _convert_navigation_costmap,
-    _static_base_link,
-    _transports_base,
-)
 from dimos.robot.unitree.go2.connection import go2_connection
 from dimos.visualization.rerun.bridge import rerun_bridge
 from dimos.web.websocket_vis.websocket_vis_module import websocket_vis
 
 CUSTOM_VIEWER_URL = "rerun+http://127.0.0.1:9877/proxy"
-
-
-def _rerun_config() -> dict[str, Any]:
-    return {
-        "pubsubs": [LCM(autoconf=True)],
-        "viewer_mode": "none",  # don't spawn viewer — we use the custom one
-        "visual_override": {
-            "world/camera_info": _convert_camera_info,
-            "world/global_map": _convert_global_map,
-            "world/navigation_costmap": _convert_navigation_costmap,
-        },
-        "static": {
-            "world/tf/base_link": _static_base_link,
-        },
-    }
 
 
 def main() -> None:
@@ -88,23 +64,28 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    # Configure global config
+    # Configure global config BEFORE any imports that read it
     if args.simulation:
         global_config.update(simulation=True)
-    global_config.update(viewer_backend="rerun")
     if args.robot_ip:
         global_config.update(robot_ip=args.robot_ip)
 
-    # Initialize rerun and connect to custom viewer BEFORE building blueprint.
-    # This must happen before coordinator.start() so the bridge's rr.init("dimos")
-    # finds an active sink and doesn't disable rerun.
-    print(f"Connecting to custom Rerun viewer at {args.viewer_url}...")
-    rr.init("dimos")
-    rr.connect_grpc(args.viewer_url)
-    print("Connected to viewer.")
+    # Use the rerun bridge with viewer_mode="native" but point it at
+    # our custom viewer's gRPC port via RERUN_CONNECT_ADDR env var.
+    # This way the bridge handles rr.init + rr.spawn normally, but
+    # spawn connects to our already-running custom viewer.
+    #
+    # Actually, rr.spawn starts a NEW viewer process. We don't want that.
+    # Instead: use "none" mode and call connect_grpc AFTER bridge.start().
+    global_config.update(viewer_backend="rerun")
+
+    rerun_config = {
+        "pubsubs": [LCM(autoconf=True)],
+        "viewer_mode": "none",
+    }
 
     print("Building blueprint...")
-    with_vis = autoconnect(_transports_base, rerun_bridge(**_rerun_config()))
+    with_vis = autoconnect(rerun_bridge(**rerun_config))
 
     blueprint = (
         autoconnect(
@@ -127,6 +108,21 @@ def main() -> None:
 
     print("Starting modules...")
     coordinator.start()
+
+    # Connect to the custom viewer AFTER coordinator.start() so that
+    # rr.init("dimos") from the bridge has already run. This adds our
+    # gRPC sink to the existing recording stream.
+    import rerun as rr
+
+    print(f"Connecting to custom Rerun viewer at {args.viewer_url}...")
+    rr.connect_grpc(args.viewer_url)
+
+    if not rr.is_enabled():
+        print("WARNING: Rerun is disabled. Data won't reach the viewer.")
+        print("Try: rr.init('dimos') manually before this point.")
+    else:
+        print("Connected!")
+
     print()
     print("Click on entities in the Rerun viewer to send navigation goals.")
     print("Press Ctrl+C to stop.")
