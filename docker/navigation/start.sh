@@ -98,6 +98,15 @@ export ROS_DISTRO
 export LOCALIZATION_METHOD
 export IMAGE_TAG="${ROS_DISTRO}"
 
+# Detect host architecture and export for docker-compose build args
+HOST_ARCH=$(uname -m)
+case "$HOST_ARCH" in
+    x86_64)  TARGETARCH="amd64" ;;
+    aarch64|arm64) TARGETARCH="arm64" ;;
+    *)       TARGETARCH="$HOST_ARCH" ;;
+esac
+export TARGETARCH
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
@@ -244,8 +253,8 @@ if [ "$MODE" = "hardware" ]; then
 fi
 
 # Check if the image exists
-if ! docker images --format '{{.Repository}}:{{.Tag}}' | grep -q "^dimos_autonomy_stack:${IMAGE_TAG}$"; then
-    echo -e "${RED}Docker image dimos_autonomy_stack:${IMAGE_TAG} not found.${NC}"
+if ! docker images --format '{{.Repository}}:{{.Tag}}' | grep -q "^dimos_autonomy_stack_v2:${IMAGE_TAG}$"; then
+    echo -e "${RED}Docker image dimos_autonomy_stack_v2:${IMAGE_TAG} not found.${NC}"
     echo -e "${YELLOW}Please build it first with:${NC}"
     echo -e "  ./build.sh --${ROS_DISTRO}"
     exit 1
@@ -492,7 +501,7 @@ else
     done
     echo "    --device /dev/input:/dev/input \\"
     echo "    -w /workspace/dimos \\"
-    echo "    dimos_autonomy_stack:${IMAGE_TAG} \\"
+    echo "    dimos_autonomy_stack_v2:${IMAGE_TAG} \\"
     echo "    /usr/local/bin/dimos_module_entrypoint.sh"
     echo ""
 
@@ -523,6 +532,6 @@ else
         --device /dev/input:/dev/input \
         "${DRI_ARGS[@]}" \
         -w /workspace/dimos \
-        "dimos_autonomy_stack:${IMAGE_TAG}" \
+        "dimos_autonomy_stack_v2:${IMAGE_TAG}" \
         /usr/local/bin/dimos_module_entrypoint.sh
 fi
