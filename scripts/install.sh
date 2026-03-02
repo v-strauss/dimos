@@ -841,7 +841,10 @@ print_quickstart() {
     if [[ "$INSTALL_MODE" == "dev" ]]; then
         printf "    %s# tests%s\n    uv run pytest dimos\n\n    %s# type check%s\n    uv run mypy dimos\n\n" "$DIM" "$RESET" "$DIM" "$RESET"
     fi
-    [[ "$USE_NIX" == "1" ]] && printf "  %s⚠%s always run 'nix develop' before working with DimOS\n\n" "$YELLOW" "$RESET"
+    if [[ "$USE_NIX" == "1" ]]; then
+        printf "  %s⚠%s open a %snew terminal%s first, then run 'nix develop' before working with DimOS\n" "$YELLOW" "$RESET" "$BOLD" "$RESET"
+        printf "  %s⚠%s or run: %sexec bash -l%s  to reload this shell\n\n" "$YELLOW" "$RESET" "$CYAN" "$RESET"
+    fi
     printf "  %sdocs:%s       https://github.com/dimensionalOS/dimos\n" "$DIM" "$RESET"
     printf "  %sdiscord:%s    https://discord.gg/dimos\n\n" "$DIM" "$RESET"
 }
