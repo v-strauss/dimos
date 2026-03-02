@@ -558,7 +558,7 @@ prompt_install_dir() {
 # ─── installation ─────────────────────────────────────────────────────────────
 do_install_library() {
     local dir="${PROJECT_DIR:-}"
-    if [[ -z "$dir" ]]; then dir=$(prompt_install_dir "$PWD" "library"); fi
+    if [[ -z "$dir" ]]; then dir=$(prompt_install_dir "$PWD/dimensional-applications" "library"); fi
     INSTALL_DIR="$dir"
     info "library install → ${dir}"
     run_cmd "mkdir -p '$dir'"
