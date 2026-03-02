@@ -826,7 +826,8 @@ print_quickstart() {
     printf "\n  %s%s🎉 installation complete!%s\n\n  %sget started:%s\n\n" "$BOLD" "$GREEN" "$RESET" "$BOLD" "$RESET"
 
     if [[ "$USE_NIX" == "1" ]]; then
-        printf "    %s# enter nix shell + activate python%s\n    cd %s && nix develop\n    source .venv/bin/activate\n\n" "$DIM" "$RESET" "$dir"
+        printf "    %s# enter nix shell + activate python%s\n    cd %s && nix develop --command bash -c 'source .venv/bin/activate && exec bash'\n\n" "$DIM" "$RESET" "$dir"
+        printf "    %s# or in two steps:%s\n    cd %s && nix develop\n    %s# then inside nix shell:%s\n    source .venv/bin/activate\n\n" "$DIM" "$RESET" "$dir" "$DIM" "$RESET"
     else
         printf "    %s# activate the environment%s\n    cd %s && source .venv/bin/activate\n\n" "$DIM" "$RESET" "$dir"
     fi
