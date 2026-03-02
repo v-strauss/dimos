@@ -5,11 +5,11 @@
 # Interactive installer for DimOS — the agentive operating system for generalist robotics.
 #
 # Usage:
-#   curl -fsSL https://dimensional.ai/install.sh | bash
-#   curl -fsSL https://dimensional.ai/install.sh | bash -s -- --help
+#   curl -fsSL https://raw.githubusercontent.com/dimensionalOS/dimos/dev/scripts/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/dimensionalOS/dimos/dev/scripts/install.sh | bash -s -- --help
 #
 # Non-interactive:
-#   curl -fsSL https://dimensional.ai/install.sh | bash -s -- --non-interactive --mode library --extras base,unitree
+#   curl -fsSL https://raw.githubusercontent.com/dimensionalOS/dimos/dev/scripts/install.sh | bash -s -- --non-interactive --mode library --extras base,unitree
 #
 set -euo pipefail
 
@@ -229,8 +229,8 @@ usage() {
 ${BOLD}DimOS Interactive Installer${RESET} v${INSTALLER_VERSION}
 
 ${BOLD}USAGE${RESET}
-    curl -fsSL https://dimensional.ai/install.sh | bash
-    curl -fsSL https://dimensional.ai/install.sh | bash -s -- [OPTIONS]
+    curl -fsSL https://raw.githubusercontent.com/dimensionalOS/dimos/dev/scripts/install.sh | bash
+    curl -fsSL https://raw.githubusercontent.com/dimensionalOS/dimos/dev/scripts/install.sh | bash -s -- [OPTIONS]
 
 ${BOLD}OPTIONS${RESET}
     --mode library|dev     Install mode (default: interactive prompt)
@@ -248,10 +248,10 @@ ${BOLD}OPTIONS${RESET}
     --help                 Show this help
 
 ${BOLD}EXAMPLES${RESET}
-    curl -fsSL https://dimensional.ai/install.sh | bash
-    curl -fsSL https://dimensional.ai/install.sh | bash -s -- --mode dev --no-cuda
-    curl -fsSL https://dimensional.ai/install.sh | bash -s -- --non-interactive --extras base,unitree
-    curl -fsSL https://dimensional.ai/install.sh | bash -s -- --dry-run
+    curl -fsSL https://raw.githubusercontent.com/dimensionalOS/dimos/dev/scripts/install.sh | bash
+    curl -fsSL https://raw.githubusercontent.com/dimensionalOS/dimos/dev/scripts/install.sh | bash -s -- --mode dev --no-cuda
+    curl -fsSL https://raw.githubusercontent.com/dimensionalOS/dimos/dev/scripts/install.sh | bash -s -- --non-interactive --extras base,unitree
+    curl -fsSL https://raw.githubusercontent.com/dimensionalOS/dimos/dev/scripts/install.sh | bash -s -- --dry-run
 EOF
     exit 0
 }
