@@ -113,6 +113,38 @@ if [[ -f /etc/sysctl.d/99-dimos.conf ]]; then
     fi
 fi
 
+# ─── Nix ─────────────────────────────────────────────────────────────────────
+if [[ -d /nix ]]; then
+    if should_remove "Remove Nix completely (/nix, daemon, build users)?"; then
+        if [[ "$DRY_RUN" == "1" ]]; then
+            dim "[dry-run] stop nix-daemon"
+            dim "[dry-run] rm -rf /nix /etc/nix /etc/profile.d/nix*.sh"
+            dim "[dry-run] remove nixbld users + group"
+            dim "[dry-run] rm -rf ~/.nix-profile ~/.nix-defexpr ~/.nix-channels ~/.config/nix"
+        else
+            sudo systemctl stop nix-daemon.socket nix-daemon.service 2>/dev/null || true
+            sudo systemctl disable nix-daemon.socket nix-daemon.service 2>/dev/null || true
+            sudo rm -f /etc/systemd/system/nix-daemon.service /etc/systemd/system/nix-daemon.socket
+            sudo rm -f /etc/systemd/system/sockets.target.wants/nix-daemon.socket
+            sudo systemctl daemon-reload 2>/dev/null || true
+            sudo rm -rf /nix /etc/nix
+            sudo rm -f /etc/profile.d/nix.sh /etc/profile.d/nix-daemon.sh
+            rm -rf "$HOME/.nix-profile" "$HOME/.nix-defexpr" "$HOME/.nix-channels" "$HOME/.config/nix"
+            for i in $(seq 1 32); do sudo userdel "nixbld$i" 2>/dev/null || true; done
+            sudo groupdel nixbld 2>/dev/null || true
+            ok "Nix removed (open a new shell to clear environment)"
+        fi
+    fi
+fi
+
+# ─── dimensional-applications (library install default dir) ───────────────────
+if [[ -d "$HOME/dimensional-applications" ]]; then
+    local_size="$(du -sh "$HOME/dimensional-applications" 2>/dev/null | cut -f1 || echo "?")"
+    if should_remove "Remove ~/dimensional-applications/ (${local_size})?"; then
+        do_rm "$HOME/dimensional-applications"
+    fi
+fi
+
 # ─── gum (temp install from installer) ───────────────────────────────────────
 for tmpgum in /tmp/gum-install.*/gum*; do
     if [[ -d "$(dirname "$tmpgum")" ]]; then
