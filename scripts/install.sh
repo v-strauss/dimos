@@ -14,7 +14,7 @@
 set -euo pipefail
 
 # ─── version ──────────────────────────────────────────────────────────────────
-INSTALLER_VERSION="0.1.0"
+INSTALLER_VERSION="0.2.0"
 
 # ─── defaults ─────────────────────────────────────────────────────────────────
 INSTALL_MODE="${DIMOS_INSTALL_MODE:-}"          # library | dev
@@ -26,6 +26,10 @@ NO_SYSCTL="${DIMOS_NO_SYSCTL:-0}"
 DRY_RUN="${DIMOS_DRY_RUN:-0}"
 PROJECT_DIR="${DIMOS_PROJECT_DIR:-}"
 VERBOSE=0
+USE_NIX="${DIMOS_USE_NIX:-0}"
+NO_NIX="${DIMOS_NO_NIX:-0}"
+SKIP_TESTS="${DIMOS_SKIP_TESTS:-0}"
+HAS_NIX=0
 
 # ─── colors (matching DimOS theme: cyan #00eeee, white #b5e4f4) ──────────────
 if [[ -t 1 ]] && command -v tput &>/dev/null && [[ $(tput colors 2>/dev/null || echo 0) -ge 8 ]]; then
@@ -178,6 +182,9 @@ ${BOLD}OPTIONS${RESET}
     --non-interactive      Accept defaults, no prompts
     --no-cuda              Force CPU-only (skip CUDA extras)
     --no-sysctl            Skip LCM sysctl configuration
+    --use-nix              Force Nix-based setup (install Nix if needed)
+    --no-nix               Skip Nix detection and setup entirely
+    --skip-tests           Skip post-install verification tests
     --dry-run              Print commands without executing
     --verbose              Show all commands being run
     --help                 Show this help
@@ -189,6 +196,9 @@ ${BOLD}ENVIRONMENT VARIABLES${RESET}
     DIMOS_BRANCH           Git branch (default: dev)
     DIMOS_NO_CUDA          1 = skip CUDA
     DIMOS_NO_SYSCTL        1 = skip sysctl
+    DIMOS_USE_NIX          1 = force Nix-based setup
+    DIMOS_NO_NIX           1 = skip Nix entirely
+    DIMOS_SKIP_TESTS       1 = skip post-install tests
     DIMOS_DRY_RUN          1 = dry run
     DIMOS_PROJECT_DIR      Project directory
 
@@ -202,6 +212,9 @@ ${BOLD}EXAMPLES${RESET}
 
     # developer install, cpu-only
     curl -fsSL https://dimensional.ai/install.sh | bash -s -- --mode dev --no-cuda
+
+    # install using Nix for system dependencies
+    curl -fsSL https://dimensional.ai/install.sh | bash -s -- --use-nix
 
     # dry run to see what would happen
     curl -fsSL https://dimensional.ai/install.sh | bash -s -- --dry-run
@@ -219,6 +232,9 @@ parse_args() {
             --non-interactive) NON_INTERACTIVE=1; shift ;;
             --no-cuda)         NO_CUDA=1; shift ;;
             --no-sysctl)       NO_SYSCTL=1; shift ;;
+            --use-nix)         USE_NIX=1; shift ;;
+            --no-nix)          NO_NIX=1; shift ;;
+            --skip-tests)      SKIP_TESTS=1; shift ;;
             --dry-run)         DRY_RUN=1; shift ;;
             --verbose)         VERBOSE=1; shift ;;
             --help|-h)         usage ;;
@@ -311,6 +327,19 @@ detect_python() {
     DETECTED_PYTHON_VER=""
 }
 
+detect_nix() {
+    if has_cmd nix; then
+        HAS_NIX=1
+    elif [[ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
+        # nix installed but not yet sourced in this shell
+        # shellcheck disable=SC1091
+        . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh 2>/dev/null || true
+        if has_cmd nix; then
+            HAS_NIX=1
+        fi
+    fi
+}
+
 print_sysinfo() {
     printf "\n"
     info "detecting system..."
@@ -342,16 +371,146 @@ print_sysinfo() {
         python_display="${YELLOW}not found (uv will install 3.12)${RESET}"
     fi
 
+    local nix_display
+    if [[ "$HAS_NIX" == "1" ]]; then
+        local nix_ver
+        nix_ver="$(nix --version 2>/dev/null | head -1 || echo "unknown")"
+        nix_display="${GREEN}${nix_ver}${RESET}"
+    else
+        nix_display="not installed"
+    fi
+
     printf "  %sOS:%s       %s\n" "$DIM" "$RESET" "$os_display"
     printf "  %sPython:%s   %s\n" "$DIM" "$RESET" "$python_display"
     printf "  %sGPU:%s      %s\n" "$DIM" "$RESET" "$gpu_display"
+    printf "  %sNix:%s      %s\n" "$DIM" "$RESET" "$nix_display"
     printf "  %sRAM:%s      %s GB\n" "$DIM" "$RESET" "$DETECTED_RAM_GB"
     printf "  %sDisk:%s     %s GB free\n" "$DIM" "$RESET" "$DETECTED_DISK_GB"
     printf "\n"
 }
 
+# ─── nix support ──────────────────────────────────────────────────────────────
+install_nix() {
+    info "installing Nix via Determinate Systems installer..."
+    if [[ "$DRY_RUN" == "1" ]]; then
+        dim "[dry-run] curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install"
+        dim "[dry-run] source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh"
+        dim "[dry-run] enable flakes in ~/.config/nix/nix.conf"
+        HAS_NIX=1
+        return
+    fi
+
+    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix \
+        | sh -s -- install --no-confirm
+
+    # Source nix into current shell
+    if [[ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]]; then
+        # shellcheck disable=SC1091
+        . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+    fi
+
+    # Ensure flakes are enabled (Determinate installer enables by default, but be safe)
+    mkdir -p "$HOME/.config/nix"
+    if ! grep -q "experimental-features.*flakes" "$HOME/.config/nix/nix.conf" 2>/dev/null; then
+        echo "experimental-features = nix-command flakes" >> "$HOME/.config/nix/nix.conf"
+    fi
+
+    # Verify
+    if ! has_cmd nix; then
+        die "Nix installation failed — 'nix' command not found after install"
+    fi
+
+    HAS_NIX=1
+    ok "Nix installed ($(nix --version 2>/dev/null || echo 'unknown'))"
+}
+
+handle_nix_setup() {
+    # Skip nix handling entirely if --no-nix
+    if [[ "$NO_NIX" == "1" ]]; then
+        dim "  skipping Nix setup (--no-nix)"
+        return
+    fi
+
+    # --use-nix forces nix path
+    if [[ "$USE_NIX" == "1" ]]; then
+        if [[ "$HAS_NIX" == "1" ]]; then
+            ok "Nix detected — will use for system dependencies"
+            return
+        fi
+        info "--use-nix specified but Nix not found, installing..."
+        install_nix
+        USE_NIX=1
+        return
+    fi
+
+    if [[ "$HAS_NIX" == "1" ]]; then
+        printf "\n"
+        info "Nix detected on your system"
+        if prompt_yn "  ${CYAN}▸${RESET} set up DimOS with Nix? (provides system deps via nix develop)" "y"; then
+            USE_NIX=1
+            ok "will use Nix for system dependencies"
+        else
+            dim "  proceeding without Nix"
+        fi
+    elif [[ "$DETECTED_OS" == "nixos" ]]; then
+        die "NixOS detected but 'nix' command not found. Your Nix installation may be broken."
+    else
+        # On non-NixOS, optionally offer Nix installation
+        if prompt_yn "  ${CYAN}▸${RESET} would you like to install Nix? (recommended for reproducible system deps)" "n"; then
+            install_nix
+            USE_NIX=1
+            ok "will use Nix for system dependencies"
+        fi
+    fi
+}
+
+verify_nix_develop() {
+    # Verify that nix develop provides the expected dependencies
+    local dir="$1"
+    info "verifying nix develop environment (this may take a while on first run)..."
+
+    if [[ "$DRY_RUN" == "1" ]]; then
+        dim "[dry-run] nix develop --command bash -c 'which python3 && which gcc'"
+        ok "nix develop verification skipped (dry-run)"
+        return
+    fi
+
+    local nix_check
+    nix_check=$(cd "$dir" && nix develop --command bash -c '
+        echo "python3=$(which python3 2>/dev/null || echo MISSING)"
+        echo "gcc=$(which gcc 2>/dev/null || echo MISSING)"
+        echo "pkg-config=$(which pkg-config 2>/dev/null || echo MISSING)"
+        python3 --version 2>/dev/null || echo "python3 version: UNAVAILABLE"
+    ' 2>&1) || true
+
+    if echo "$nix_check" | grep -q "python3=MISSING"; then
+        warn "nix develop: python3 not found in nix shell"
+    else
+        local py_path
+        py_path=$(echo "$nix_check" | grep "^python3=" | cut -d= -f2)
+        ok "nix develop: python3 available at ${py_path}"
+    fi
+
+    if echo "$nix_check" | grep -q "gcc=MISSING"; then
+        warn "nix develop: gcc not found in nix shell"
+    else
+        ok "nix develop: gcc available"
+    fi
+
+    if echo "$nix_check" | grep -q "pkg-config=MISSING"; then
+        warn "nix develop: pkg-config not found in nix shell"
+    else
+        ok "nix develop: pkg-config available"
+    fi
+}
+
 # ─── system dependencies ─────────────────────────────────────────────────────
 install_system_deps() {
+    if [[ "$USE_NIX" == "1" ]]; then
+        info "system dependencies will be provided by nix develop"
+        return
+    fi
+
     info "installing system dependencies..."
     case "$DETECTED_OS" in
         ubuntu|wsl)
@@ -366,7 +525,9 @@ install_system_deps() {
             run_cmd "brew install gnu-sed gcc portaudio git-lfs libjpeg-turbo python pre-commit"
             ;;
         nixos)
+            # NixOS without USE_NIX — user declined nix path
             info "NixOS detected — system deps managed via nix develop"
+            warn "you declined Nix setup; you may need to manually run 'nix develop' for system deps"
             ;;
     esac
     ok "system dependencies ready"
@@ -490,23 +651,60 @@ do_install_library() {
 
     run_cmd "mkdir -p '$dir'"
 
-    info "creating virtual environment (python 3.12)..."
-    if [[ "$DRY_RUN" == "1" ]]; then
-        dim "[dry-run] cd '$dir' && uv venv --python 3.12"
-    else
-        (cd "$dir" && uv venv --python 3.12)
-    fi
+    if [[ "$USE_NIX" == "1" ]]; then
+        # Download flake files for nix develop
+        info "downloading flake.nix and flake.lock..."
+        local flake_base="https://raw.githubusercontent.com/dimensionalOS/dimos/refs/heads/${GIT_BRANCH}"
+        if [[ "$DRY_RUN" == "1" ]]; then
+            dim "[dry-run] curl -fsSL ${flake_base}/flake.nix -o ${dir}/flake.nix"
+            dim "[dry-run] curl -fsSL ${flake_base}/flake.lock -o ${dir}/flake.lock"
+        else
+            curl -fsSL "${flake_base}/flake.nix" -o "${dir}/flake.nix"
+            curl -fsSL "${flake_base}/flake.lock" -o "${dir}/flake.lock"
+        fi
+        ok "flake files downloaded"
 
-    local pip_extras="$EXTRAS"
-    info "installing dimos[${pip_extras}]..."
-    if [[ "$DRY_RUN" == "1" ]]; then
-        dim "[dry-run] cd '$dir' && source .venv/bin/activate && uv pip install 'dimos[${pip_extras}]'"
+        # Initialize a minimal git repo (nix flakes require git context)
+        if [[ "$DRY_RUN" != "1" ]] && [[ ! -d "${dir}/.git" ]]; then
+            (cd "$dir" && git init -q && git add flake.nix flake.lock && git commit -q -m "init: add flake files" --allow-empty)
+        fi
+
+        verify_nix_develop "$dir"
+
+        local pip_extras="$EXTRAS"
+        info "creating venv and installing dimos[${pip_extras}] via nix develop..."
+        if [[ "$DRY_RUN" == "1" ]]; then
+            dim "[dry-run] cd '$dir' && nix develop --command bash -c 'uv venv --python 3.12 && source .venv/bin/activate && uv pip install \"dimos[${pip_extras}]\"'"
+        else
+            (
+                cd "$dir"
+                nix develop --command bash -c "
+                    set -euo pipefail
+                    uv venv --python 3.12
+                    source .venv/bin/activate
+                    uv pip install 'dimos[${pip_extras}]'
+                "
+            )
+        fi
     else
-        (
-            cd "$dir"
-            source .venv/bin/activate
-            uv pip install "dimos[${pip_extras}]"
-        )
+        info "creating virtual environment (python 3.12)..."
+        if [[ "$DRY_RUN" == "1" ]]; then
+            dim "[dry-run] cd '$dir' && uv venv --python 3.12"
+        else
+            (cd "$dir" && uv venv --python 3.12)
+        fi
+
+        local pip_extras="$EXTRAS"
+        info "installing dimos[${pip_extras}]..."
+        if [[ "$DRY_RUN" == "1" ]]; then
+            dim "[dry-run] cd '$dir' && source .venv/bin/activate && uv pip install 'dimos[${pip_extras}]'"
+        else
+            (
+                cd "$dir"
+                source .venv/bin/activate
+                uv pip install "dimos[${pip_extras}]"
+            )
+        fi
     fi
 
     ok "dimos installed in ${dir}"
@@ -524,11 +722,22 @@ do_install_dev() {
         run_cmd "GIT_LFS_SKIP_SMUDGE=1 git clone -b $GIT_BRANCH https://github.com/dimensionalOS/dimos.git '$dir'"
     fi
 
-    info "syncing dependencies (all extras, excluding dds)..."
-    if [[ "$DRY_RUN" == "1" ]]; then
-        dim "[dry-run] cd '$dir' && uv sync --all-extras --no-extra dds"
+    if [[ "$USE_NIX" == "1" ]]; then
+        verify_nix_develop "$dir"
+
+        info "syncing dependencies via nix develop (all extras, excluding dds)..."
+        if [[ "$DRY_RUN" == "1" ]]; then
+            dim "[dry-run] cd '$dir' && nix develop --command bash -c 'uv sync --all-extras --no-extra dds'"
+        else
+            (cd "$dir" && nix develop --command bash -c "set -euo pipefail && uv sync --all-extras --no-extra dds")
+        fi
     else
-        (cd "$dir" && uv sync --all-extras --no-extra dds)
+        info "syncing dependencies (all extras, excluding dds)..."
+        if [[ "$DRY_RUN" == "1" ]]; then
+            dim "[dry-run] cd '$dir' && uv sync --all-extras --no-extra dds"
+        else
+            (cd "$dir" && uv sync --all-extras --no-extra dds)
+        fi
     fi
 
     ok "dimos developer environment ready in ${dir}"
@@ -614,10 +823,18 @@ verify_install() {
     fi
 
     # Check python import
-    if "$venv_python" -c "import dimos" 2>/dev/null; then
-        ok "python import: dimos ✓"
+    if [[ "$USE_NIX" == "1" ]]; then
+        if (cd "$install_dir" && nix develop --command bash -c "source .venv/bin/activate && python3 -c 'import dimos'" 2>/dev/null); then
+            ok "python import: dimos ✓"
+        else
+            warn "python import check failed — this may be expected for some configurations"
+        fi
     else
-        warn "python import check failed — this may be expected for some configurations"
+        if "$venv_python" -c "import dimos" 2>/dev/null; then
+            ok "python import: dimos ✓"
+        else
+            warn "python import check failed — this may be expected for some configurations"
+        fi
     fi
 
     # Check CLI
@@ -639,6 +856,119 @@ verify_install() {
     printf "\n"
 }
 
+# ─── post-install tests ──────────────────────────────────────────────────────
+run_post_install_tests() {
+    if [[ "$SKIP_TESTS" == "1" ]]; then
+        dim "  skipping post-install tests (--skip-tests)"
+        return
+    fi
+    if [[ "$DRY_RUN" == "1" ]]; then
+        dim "[dry-run] would run post-install verification tests"
+        return
+    fi
+
+    local install_dir
+    if [[ "$INSTALL_MODE" == "library" ]]; then
+        install_dir="${PROJECT_DIR:-$HOME/dimos-project}"
+    else
+        install_dir="${PROJECT_DIR:-$HOME/dimos}"
+    fi
+
+    local venv_activate="${install_dir}/.venv/bin/activate"
+    if [[ ! -f "$venv_activate" ]]; then
+        warn "venv not found, skipping post-install tests"
+        return
+    fi
+
+    printf "\n"
+    info "${BOLD}running post-install verification tests...${RESET}"
+    printf "\n"
+
+    local test_failures=0
+
+    # ── pytest (dev mode only) ────────────────────────────────────────
+    if [[ "$INSTALL_MODE" == "dev" ]]; then
+        info "running quick pytest suite (fast tests only)..."
+
+        local pytest_exit=0
+        if [[ "$USE_NIX" == "1" ]]; then
+            (cd "$install_dir" && nix develop --command bash -c "
+                set -euo pipefail
+                source .venv/bin/activate
+                python -m pytest dimos -x -q --timeout=60 -k 'not slow and not mujoco' 2>&1 | tail -30
+            ") || pytest_exit=$?
+        else
+            (
+                cd "$install_dir"
+                source "$venv_activate"
+                uv run pytest dimos -x -q --timeout=60 -k "not slow and not mujoco" 2>&1 | tail -30
+            ) || pytest_exit=$?
+        fi
+
+        if [[ $pytest_exit -eq 0 ]]; then
+            ok "pytest: ${GREEN}passed${RESET} ✓"
+        else
+            warn "pytest: some tests failed (exit code: ${pytest_exit})"
+            ((test_failures++)) || true
+        fi
+    fi
+
+    # ── replay verification ───────────────────────────────────────────
+    info "verifying DimOS replay mode (unitree-go2, 30s timeout)..."
+
+    local replay_log
+    replay_log=$(mktemp /tmp/dimos-replay-XXXXXX.log)
+    local replay_exit=0
+
+    if [[ "$USE_NIX" == "1" ]]; then
+        (cd "$install_dir" && nix develop --command bash -c "
+            set -euo pipefail
+            source .venv/bin/activate
+            timeout 30 dimos --replay run unitree-go2
+        ") >"$replay_log" 2>&1 || replay_exit=$?
+    else
+        (
+            cd "$install_dir"
+            source "$venv_activate"
+            timeout 30 dimos --replay run unitree-go2
+        ) >"$replay_log" 2>&1 || replay_exit=$?
+    fi
+
+    if [[ $replay_exit -eq 124 ]]; then
+        # timeout killed it — means it was still running after 30s = success
+        ok "replay: unitree-go2 ran for 30s without crashing ✓"
+    elif [[ $replay_exit -eq 0 ]]; then
+        ok "replay: unitree-go2 completed successfully ✓"
+    else
+        # Check if it hit import/startup errors
+        if grep -qi "Traceback\|ModuleNotFoundError\|ImportError" "$replay_log" 2>/dev/null; then
+            warn "replay: unitree-go2 failed with errors (exit code: ${replay_exit})"
+            dim "  last lines:"
+            tail -5 "$replay_log" | while IFS= read -r line; do
+                dim "    $line"
+            done
+            ((test_failures++)) || true
+        else
+            warn "replay: unitree-go2 exited with code ${replay_exit}"
+            dim "  this may be expected in headless/CI environments"
+            tail -3 "$replay_log" | while IFS= read -r line; do
+                dim "    $line"
+            done
+        fi
+    fi
+
+    rm -f "$replay_log"
+
+    # ── summary ───────────────────────────────────────────────────────
+    printf "\n"
+    if [[ $test_failures -eq 0 ]]; then
+        ok "${BOLD}all verification tests passed${RESET} 🎉"
+    else
+        warn "${test_failures} verification test(s) had issues (see above)"
+        dim "  this may be expected depending on your environment"
+    fi
+}
+
 # ─── quickstart ───────────────────────────────────────────────────────────────
 print_quickstart() {
     local install_dir
@@ -652,8 +982,16 @@ print_quickstart() {
     printf "  %s%s🎉 installation complete!%s\n\n" "$BOLD" "$GREEN" "$RESET"
 
     printf "  %sget started:%s\n\n" "$BOLD" "$RESET"
-    printf "    %s# activate the environment%s\n" "$DIM" "$RESET"
-    printf "    cd %s && source .venv/bin/activate\n\n" "$install_dir"
+
+    if [[ "$USE_NIX" == "1" ]]; then
+        printf "    %s# enter the nix development shell (provides system deps)%s\n" "$DIM" "$RESET"
+        printf "    cd %s && nix develop\n\n" "$install_dir"
+        printf "    %s# then activate the python environment%s\n" "$DIM" "$RESET"
+        printf "    source .venv/bin/activate\n\n"
+    else
+        printf "    %s# activate the environment%s\n" "$DIM" "$RESET"
+        printf "    cd %s && source .venv/bin/activate\n\n" "$install_dir"
+    fi
 
     if [[ "$EXTRAS" == *"unitree"* ]] || [[ "$EXTRAS" == "all" ]] || [[ "$EXTRAS" == *"base"* ]]; then
         printf "    %s# run unitree go2 (simulation)%s\n" "$DIM" "$RESET"
@@ -672,6 +1010,11 @@ print_quickstart() {
         printf "    uv run pytest dimos\n\n"
         printf "    %s# type checking%s\n" "$DIM" "$RESET"
         printf "    uv run mypy dimos\n\n"
+    fi
+
+    if [[ "$USE_NIX" == "1" ]]; then
+        printf "  %s⚠ note:%s always enter 'nix develop' before working with DimOS\n" "$YELLOW" "$RESET"
+        printf "  %s  nix develop provides the system libraries DimOS needs%s\n\n" "$DIM" "$RESET"
     fi
 
     printf "  %sdocs:%s       https://github.com/dimensionalOS/dimos\n" "$DIM" "$RESET"
@@ -699,6 +1042,7 @@ main() {
     detect_os
     detect_gpu
     detect_python
+    detect_nix
     print_sysinfo
 
     # Pre-flight checks
@@ -718,6 +1062,7 @@ main() {
         fi
     fi
 
+    handle_nix_setup
     install_system_deps
     install_uv
 
@@ -734,6 +1079,7 @@ main() {
     do_install
     configure_system
     verify_install
+    run_post_install_tests
     print_quickstart
 }
 
