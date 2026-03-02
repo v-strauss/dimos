@@ -522,11 +522,11 @@ do_install_library() {
         verify_nix_develop "$dir"
         info "installing dimos[${EXTRAS}] via nix develop..."
         if [[ "$DRY_RUN" == "1" ]]; then dim "[dry-run] nix develop + uv venv + uv pip install"
-        else (cd "$dir" && nix develop --command bash -c "set -euo pipefail; uv venv --python 3.12; source .venv/bin/activate; uv pip install 'dimos[${EXTRAS}]'"); fi
+        else (cd "$dir" && nix develop --command bash -c "set -euo pipefail; UV_VENV_CLEAR=1 uv venv --python 3.12; source .venv/bin/activate; uv pip install 'dimos[${EXTRAS}]'"); fi
     else
         info "creating virtual environment (python 3.12)..."
-        if [[ "$DRY_RUN" == "1" ]]; then dim "[dry-run] uv venv --python 3.12"
-        else (cd "$dir" && uv venv --python 3.12); fi
+        if [[ "$DRY_RUN" == "1" ]]; then dim "[dry-run] UV_VENV_CLEAR=1 uv venv --python 3.12"
+        else (cd "$dir" && UV_VENV_CLEAR=1 uv venv --python 3.12); fi
         info "installing dimos[${EXTRAS}]..."
         if [[ "$DRY_RUN" == "1" ]]; then dim "[dry-run] uv pip install 'dimos[${EXTRAS}]'"
         else (cd "$dir" && source .venv/bin/activate && uv pip install "dimos[${EXTRAS}]"); fi
