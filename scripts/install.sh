@@ -363,15 +363,45 @@ print_sysinfo() {
 
 # ─── nix support ──────────────────────────────────────────────────────────────
 install_nix() {
-    info "installing Nix via Determinate Systems installer..."
-    if [[ "$DRY_RUN" == "1" ]]; then
-        dim "[dry-run] curl ... | sh -s -- install"; HAS_NIX=1; return
-    fi
-    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm
-    [[ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]] && . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+    info "Nix is not installed. See: https://nixos.org/download/"
+    printf "\n"
+
+    local method
+    method=$(prompt_select "Which Nix installer would you like to use?" \
+        "Determinate Systems (recommended, enables flakes by default)" \
+        "Official nixos.org installer (multi-user daemon)" \
+        "Skip — I'll install Nix myself later")
+
+    case "$method" in
+        *Determinate*)
+            info "installing Nix via Determinate Systems..."
+            if [[ "$DRY_RUN" == "1" ]]; then
+                dim "[dry-run] curl -sSf https://install.determinate.systems/nix | sh -s -- install"
+                HAS_NIX=1; return
+            fi
+            curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm
+            ;;
+        *nixos.org*)
+            info "installing Nix via official installer..."
+            if [[ "$DRY_RUN" == "1" ]]; then
+                dim "[dry-run] sh <(curl -L https://nixos.org/nix/install) --daemon"
+                HAS_NIX=1; return
+            fi
+            sh <(curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install) --daemon
+            ;;
+        *Skip*|*)
+            warn "skipping Nix installation — falling back to system packages"
+            SETUP_METHOD="system"
+            return
+            ;;
+    esac
+
+    [[ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]] && \
+        . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
     mkdir -p "$HOME/.config/nix"
-    grep -q "experimental-features.*flakes" "$HOME/.config/nix/nix.conf" 2>/dev/null || echo "experimental-features = nix-command flakes" >> "$HOME/.config/nix/nix.conf"
-    has_cmd nix || die "Nix installation failed"
+    grep -q "experimental-features.*flakes" "$HOME/.config/nix/nix.conf" 2>/dev/null || \
+        echo "experimental-features = nix-command flakes" >> "$HOME/.config/nix/nix.conf"
+    has_cmd nix || die "Nix installation failed — 'nix' not found after install"
     HAS_NIX=1; ok "Nix installed ($(nix --version 2>/dev/null))"
 }
 
@@ -518,9 +548,32 @@ prompt_extras() {
     printf "\n"; ok "selected extras: ${CYAN}${EXTRAS}${RESET}"
 }
 
+prompt_install_dir() {
+    local default="$1" mode="$2"
+    if [[ "$NON_INTERACTIVE" == "1" ]]; then echo "$default"; return; fi
+
+    local hint
+    [[ "$mode" == "dev" ]] && hint="git clone destination" || hint="project directory"
+
+    if [[ -n "$GUM" ]]; then
+        local result
+        result=$("$GUM" input --header "Where should we install DimOS? (${hint})"             --placeholder "$default" --value "$default"             --header.foreground="255" --header.bold             --cursor.foreground="44" </dev/tty)
+        [[ -z "$result" ]] && result="$default"
+        echo "$result"
+    else
+        printf "\n%sWhere should we install DimOS?%s (%s)\n" "$BOLD" "$RESET" "$hint" >/dev/tty
+        printf "  path [%s]: " "$default" >/dev/tty
+        local result
+        read -r result </dev/tty || result=""
+        [[ -z "$result" ]] && result="$default"
+        echo "$result"
+    fi
+}
+
 # ─── installation ─────────────────────────────────────────────────────────────
 do_install_library() {
-    local dir="${PROJECT_DIR:-$HOME/dimos-project}"
+    local dir="${PROJECT_DIR:-}"
+    if [[ -z "$dir" ]]; then dir=$(prompt_install_dir "$PWD" "library"); fi
     info "library install → ${dir}"
     run_cmd "mkdir -p '$dir'"
 
@@ -571,7 +624,8 @@ do_install_library() {
 }
 
 do_install_dev() {
-    local dir="${PROJECT_DIR:-$HOME/dimos}"
+    local dir="${PROJECT_DIR:-}"
+    if [[ -z "$dir" ]]; then dir=$(prompt_install_dir "$PWD/dimos" "dev"); fi
     info "developer install → ${dir}"
     if [[ -d "$dir/.git" ]]; then
         info "existing clone found, pulling latest..."
