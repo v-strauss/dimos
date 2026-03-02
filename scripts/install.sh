@@ -142,7 +142,7 @@ prompt_multi() {
     done
     local cursor=0
 
-    # Hide cursor
+    # Hide cursor (restored by cleanup trap on SIGINT)
     printf "\033[?25l" >/dev/tty
 
     _draw_multi() {
@@ -1116,10 +1116,23 @@ print_quickstart() {
     printf "  %sdiscord:%s    https://discord.gg/dimos\n\n" "$DIM" "$RESET"
 }
 
-# ─── cleanup on error ────────────────────────────────────────────────────────
+# ─── signal handling ──────────────────────────────────────────────────────────
+_interrupted=0
+handle_sigint() {
+    _interrupted=1
+    printf "\n"
+    warn "interrupted — cleaning up..."
+    # Restore cursor visibility (checkbox UI hides it)
+    printf "\033[?25h" 2>/dev/null
+    exit 130
+}
+trap handle_sigint INT
+
 cleanup() {
     local exit_code=$?
-    if [[ $exit_code -ne 0 ]]; then
+    # Restore cursor visibility on any exit
+    printf "\033[?25h" 2>/dev/null
+    if [[ $exit_code -ne 0 ]] && [[ "$_interrupted" != "1" ]]; then
         printf "\n"
         err "installation failed (exit code: ${exit_code})"
         err "for help: https://github.com/dimensionalOS/dimos/issues"
