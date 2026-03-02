@@ -423,13 +423,13 @@ prompt_setup_method() {
     if [[ "$HAS_NIX" == "1" ]]; then
         choice=$(prompt_select "How should we set up system dependencies?" \
             "System packages — apt/brew (simpler)" \
-            "Nix — nix develop (dev mode only, reproducible)")
+            "Nix — nix develop (reproducible)")
     elif [[ "$DETECTED_OS" == "nixos" ]]; then
         die "NixOS detected but 'nix' command not found."
     else
         choice=$(prompt_select "How should we set up system dependencies?" \
             "System packages — apt/brew (recommended)" \
-            "Install Nix — nix develop (dev mode only, reproducible)") || die "cancelled"
+            "Install Nix — nix develop (reproducible, installs Nix first)") || die "cancelled"
     fi
 
     case "$choice" in
@@ -894,12 +894,17 @@ main() {
 
     prompt_install_mode
 
-    # Nix only works with dev mode (nix LD_LIBRARY_PATH conflicts with pip wheels)
+    # Warn about known Nix + library + old glibc issue
     if [[ "$USE_NIX" == "1" ]] && [[ "$INSTALL_MODE" == "library" ]]; then
-        warn "Nix is not compatible with library installs (LD_LIBRARY_PATH conflicts with pip wheels)"
-        info "switching to system packages for library mode"
-        USE_NIX=0; SETUP_METHOD="system"
-        install_system_deps
+        if [[ "$DETECTED_OS" == "ubuntu" ]] || [[ "$DETECTED_OS" == "wsl" ]]; then
+            local glibc_ver; glibc_ver=$(ldd --version 2>&1 | head -1 | grep -oP '[0-9]+\.[0-9]+$' || echo "0")
+            if awk "BEGIN{exit !($glibc_ver < 2.38)}"; then
+                warn "Nix + library install on glibc ${glibc_ver} may have issues"
+                dim "  Nix's LD_LIBRARY_PATH can conflict with PyPI wheels on glibc < 2.38"
+                dim "  if you hit import errors, try: system packages instead of Nix"
+                dim "  or upgrade to Ubuntu 24.04+ (glibc 2.39)"
+            fi
+        fi
     fi
 
     prompt_extras
